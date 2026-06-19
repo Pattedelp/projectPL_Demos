@@ -55,12 +55,26 @@ export function AuthProvider({ children }) {
     return error;
   }
 
+  async function registrar(email, password, nombreNegocio) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) return error;
+
+    const { error: errorNegocio } = await supabase
+      .from("negocios")
+      .insert([{ nombre: nombreNegocio, user_id: data.user.id }]);
+
+    return errorNegocio;
+  }
+
   async function logout() {
     await supabase.auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ user, negocio, cargando, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, negocio, cargando, login, logout, registrar }}
+    >
       {children}
     </AuthContext.Provider>
   );

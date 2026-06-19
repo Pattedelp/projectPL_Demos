@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Store } from "lucide-react";
 
-function Login({ onIrARegistro }) {
-  const { login } = useAuth();
+function Registro({ onVolverALogin }) {
+  const { registrar } = useAuth();
+  const [nombreNegocio, setNombreNegocio] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [exito, setExito] = useState(false);
   const [cargando, setCargando] = useState(false);
 
   async function handleSubmit(e) {
@@ -17,14 +19,40 @@ function Login({ onIrARegistro }) {
     setError("");
     setCargando(true);
 
-    const errorLogin = await login(email, password);
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      setCargando(false);
+      return;
+    }
 
-    if (errorLogin) {
-      setError("Email o contraseña incorrectos");
+    const errorRegistro = await registrar(email, password, nombreNegocio);
+
+    if (errorRegistro) {
+      setError(errorRegistro.message || "Hubo un error al crear la cuenta");
+      setCargando(false);
+    } else {
+      setExito(true);
       setCargando(false);
     }
-    // Si funciona, el AuthContext detecta el cambio automáticamente
-    // y App.jsx redirige solo. No hace falta hacer nada más acá.
+  }
+
+  if (exito) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-12 h-12 rounded-lg bg-green-600 flex items-center justify-center mb-4 mx-auto">
+            <Store className="text-white" size={24} />
+          </div>
+          <h1 className="text-xl font-bold text-white mb-2">¡Cuenta creada!</h1>
+          <p className="text-slate-400 text-sm mb-6">
+            Ya podés iniciar sesión con tu email y contraseña.
+          </p>
+          <Button onClick={onVolverALogin} className="w-full">
+            Ir a iniciar sesión
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -34,11 +62,21 @@ function Login({ onIrARegistro }) {
           <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center mb-3">
             <Store className="text-white" size={24} />
           </div>
-          <h1 className="text-xl font-bold text-white">Iniciar sesión</h1>
-          <p className="text-slate-400 text-sm mt-1">Ingresá a tu CRM</p>
+          <h1 className="text-xl font-bold text-white">Crear cuenta</h1>
+          <p className="text-slate-400 text-sm mt-1">Registrá tu negocio</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="nombreNegocio">Nombre del negocio</Label>
+            <Input
+              id="nombreNegocio"
+              value={nombreNegocio}
+              onChange={(e) => setNombreNegocio(e.target.value)}
+              placeholder="Ej: Ferretería Don José"
+              required
+            />
+          </div>
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -67,15 +105,15 @@ function Login({ onIrARegistro }) {
           )}
 
           <Button type="submit" className="w-full" disabled={cargando}>
-            {cargando ? "Ingresando..." : "Ingresar"}
+            {cargando ? "Creando cuenta..." : "Crear cuenta"}
           </Button>
 
           <button
             type="button"
-            onClick={onIrARegistro}
+            onClick={onVolverALogin}
             className="w-full text-center text-sm text-slate-400 hover:text-white transition-colors"
           >
-            ¿No tenés cuenta? Registrate
+            ¿Ya tenés cuenta? Iniciar sesión
           </button>
         </form>
       </div>
@@ -83,4 +121,4 @@ function Login({ onIrARegistro }) {
   );
 }
 
-export default Login;
+export default Registro;

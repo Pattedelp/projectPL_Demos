@@ -7,9 +7,12 @@ import Dashboard from "@/pages/Dashboard";
 import Clientes from "@/pages/Clientes";
 import Productos from "@/pages/Productos";
 import Ventas from "@/pages/Ventas";
+import { useState } from "react";
+import Registro from "@/pages/Registro";
 
 function AppRoutes() {
   const { user, cargando } = useAuth();
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   if (cargando) {
     return (
@@ -17,6 +20,13 @@ function AppRoutes() {
         <p className="text-slate-400">Cargando...</p>
       </div>
     );
+  }
+
+  if (!user) {
+    if (mostrarRegistro) {
+      return <Registro onVolverALogin={() => setMostrarRegistro(false)} />;
+    }
+    return <Login onIrARegistro={() => setMostrarRegistro(true)} />;
   }
 
   if (!user) {
