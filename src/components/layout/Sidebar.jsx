@@ -1,5 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Package, ShoppingCart } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  Store,
+} from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -11,7 +17,13 @@ const links = [
 function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-slate-950 border-r border-slate-800 p-4 flex flex-col">
-      <h2 className="text-xl font-bold text-white mb-8 px-2">Mi CRM</h2>
+      <div className="flex items-center gap-2 mb-8 px-2">
+        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
+          <Store className="text-white" size={18} />
+        </div>
+        <h2 className="text-lg font-bold text-white">Mi CRM</h2>
+      </div>
+
       <nav className="flex flex-col gap-1">
         {links.map(({ to, label, icon: Icon }) => (
           <NavLink
@@ -19,10 +31,10 @@ function Sidebar() {
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-white hover:translate-x-0.5"
               }`
             }
           >
@@ -31,6 +43,11 @@ function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <div className="mt-auto px-2 pt-4 border-t border-slate-800">
+        <p className="text-xs text-slate-500">Ferretería Don José</p>
+        <p className="text-xs text-slate-600 mt-0.5">Plan Demo</p>
+      </div>
     </aside>
   );
 }

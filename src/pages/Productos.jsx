@@ -167,33 +167,44 @@ function Productos() {
       ) : productos.length === 0 ? (
         <p className="text-slate-400">Todavía no hay productos cargados.</p>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {productos.map((producto) => {
             const stockBajo = producto.stock <= producto.stock_minimo;
             return (
               <div
                 key={producto.id}
-                className={`bg-slate-800 border rounded-lg p-4 flex items-center justify-between ${
-                  stockBajo ? "border-red-500/50" : "border-slate-700"
+                className={`bg-slate-800 border rounded-lg p-4 hover:bg-slate-800/80 transition-all ${
+                  stockBajo
+                    ? "border-red-500/50"
+                    : "border-slate-700 hover:border-slate-600"
                 }`}
               >
-                <div>
+                <div className="flex items-start justify-between mb-2">
                   <h3 className="text-white font-semibold">
                     {producto.nombre}
                   </h3>
-                  <p className="text-slate-400 text-sm">
+                  {stockBajo && (
+                    <div className="flex items-center gap-1 text-red-400 text-xs font-medium bg-red-500/10 px-2 py-1 rounded-md shrink-0">
+                      <AlertTriangle size={12} />
+                      Bajo
+                    </div>
+                  )}
+                </div>
+                {producto.descripcion && (
+                  <p className="text-slate-400 text-sm mb-3 line-clamp-2">
                     {producto.descripcion}
                   </p>
-                  <p className="text-slate-300 text-sm mt-1">
-                    ${producto.precio} · Stock: {producto.stock}
-                  </p>
-                </div>
-                {stockBajo && (
-                  <div className="flex items-center gap-1 text-red-400 text-sm font-medium bg-red-500/10 px-3 py-1.5 rounded-lg">
-                    <AlertTriangle size={16} />
-                    Stock bajo
-                  </div>
                 )}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+                  <span className="text-white font-semibold">
+                    ${producto.precio}
+                  </span>
+                  <span
+                    className={`text-sm ${stockBajo ? "text-red-400" : "text-slate-400"}`}
+                  >
+                    Stock: {producto.stock}
+                  </span>
+                </div>
               </div>
             );
           })}

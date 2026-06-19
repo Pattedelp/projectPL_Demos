@@ -139,15 +139,30 @@ function Clientes() {
       ) : clientes.length === 0 ? (
         <p className="text-slate-400">Todavía no hay clientes cargados.</p>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {clientes.map((cliente) => (
             <div
               key={cliente.id}
-              className="bg-slate-800 border border-slate-700 rounded-lg p-4"
+              className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-600 hover:bg-slate-800/80 transition-all"
             >
-              <h3 className="text-white font-semibold">{cliente.nombre}</h3>
-              <p className="text-slate-400 text-sm">{cliente.email}</p>
-              <p className="text-slate-400 text-sm">{cliente.telefono}</p>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-semibold text-sm shrink-0">
+                  {cliente.nombre.charAt(0).toUpperCase()}
+                </div>
+                <h3 className="text-white font-semibold truncate">
+                  {cliente.nombre}
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {cliente.email && (
+                  <p className="text-slate-400 text-sm truncate">
+                    {cliente.email}
+                  </p>
+                )}
+                {cliente.telefono && (
+                  <p className="text-slate-400 text-sm">{cliente.telefono}</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
