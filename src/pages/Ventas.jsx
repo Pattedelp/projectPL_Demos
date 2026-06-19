@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ function Ventas() {
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const { negocio } = useAuth();
   const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
@@ -34,16 +36,19 @@ function Ventas() {
     const { data: dataVentas } = await supabase
       .from("ventas")
       .select("*, clientes(nombre), venta_items(*, productos(nombre))")
+      .eq("negocio_id", negocio.id)
       .order("created_at", { ascending: false });
 
     const { data: dataClientes } = await supabase
       .from("clientes")
       .select("id, nombre")
+      .eq("negocio_id", negocio.id)
       .order("nombre");
 
     const { data: dataProductos } = await supabase
       .from("productos")
       .select("*")
+      .eq("negocio_id", negocio.id)
       .order("nombre");
 
     setVentas(dataVentas || []);
@@ -109,7 +114,7 @@ function Ventas() {
 
     const { data: ventaCreada, error: errorVenta } = await supabase
       .from("ventas")
-      .insert([{ cliente_id: clienteId, total }])
+      .insert([{ cliente_id: clienteId, total, negocio_id: negocio.id }])
       .select()
       .single();
 

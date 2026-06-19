@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
 import { Plus } from "lucide-react";
 
 function Clientes() {
+  const { negocio } = useAuth();
   const [clientes, setClientes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [open, setOpen] = useState(false);
@@ -26,13 +28,16 @@ function Clientes() {
   });
 
   useEffect(() => {
-    obtenerClientes();
-  }, []);
+    if (negocio) {
+      obtenerClientes();
+    }
+  }, [negocio]);
 
   async function obtenerClientes() {
     const { data, error } = await supabase
       .from("clientes")
       .select("*")
+      .eq("negocio_id", negocio.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -51,7 +56,9 @@ function Clientes() {
     e.preventDefault();
     setGuardando(true);
 
-    const { error } = await supabase.from("clientes").insert([form]);
+    const { error } = await supabase
+      .from("clientes")
+      .insert([{ ...form, negocio_id: negocio.id }]);
 
     if (error) {
       console.error("Error guardando cliente:", error);

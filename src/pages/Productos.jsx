@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
 import { Plus, AlertTriangle } from "lucide-react";
 
 function Productos() {
+  const { negocio } = useAuth();
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [open, setOpen] = useState(false);
@@ -27,13 +29,16 @@ function Productos() {
   });
 
   useEffect(() => {
-    obtenerProductos();
-  }, []);
+    if (negocio) {
+      obtenerProductos();
+    }
+  }, [negocio]);
 
   async function obtenerProductos() {
     const { data, error } = await supabase
       .from("productos")
       .select("*")
+      .eq("negocio_id", negocio.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -57,6 +62,7 @@ function Productos() {
       precio: parseFloat(form.precio) || 0,
       stock: parseInt(form.stock) || 0,
       stock_minimo: parseInt(form.stock_minimo) || 5,
+      negocio_id: negocio.id,
     };
 
     const { error } = await supabase.from("productos").insert([payload]);
