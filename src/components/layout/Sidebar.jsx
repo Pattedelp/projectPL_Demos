@@ -5,7 +5,9 @@ import {
   Package,
   ShoppingCart,
   Store,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -15,6 +17,8 @@ const links = [
 ];
 
 function Sidebar() {
+  const { negocio, logout } = useAuth();
+
   return (
     <aside className="w-64 h-screen bg-slate-950 border-r border-slate-800 p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-8 px-2">
@@ -45,8 +49,17 @@ function Sidebar() {
       </nav>
 
       <div className="mt-auto px-2 pt-4 border-t border-slate-800">
-        <p className="text-xs text-slate-500">Ferretería Don José</p>
-        <p className="text-xs text-slate-600 mt-0.5">Plan Demo</p>
+        <p className="text-sm text-white font-medium truncate">
+          {negocio?.nombre || "Mi negocio"}
+        </p>
+        <p className="text-xs text-slate-500 mb-3">Plan Demo</p>
+        <button
+          onClick={logout}
+          className="flex items-center gap-2 text-xs text-slate-400 hover:text-red-400 transition-colors"
+        >
+          <LogOut size={14} />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );
