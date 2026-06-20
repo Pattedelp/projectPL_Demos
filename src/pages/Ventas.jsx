@@ -206,32 +206,29 @@ function Ventas() {
                 </select>
               </div>
 
-              <div className="border-t border-border pt-4">
-                <Label>Agregar productos</Label>
-                <div className="flex gap-2 mt-1">
-                  <select
-                    value={productoSeleccionado}
-                    onChange={(e) => setProductoSeleccionado(e.target.value)}
-                    className="flex-1 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
-                  >
-                    <option value="">Producto...</option>
-                    {productos.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre} (stock: {p.stock})
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min="1"
-                    value={cantidad}
-                    onChange={(e) => setCantidad(e.target.value)}
-                    className="w-20 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
-                  />
-                  <Button type="button" onClick={agregarItem}>
-                    Agregar
-                  </Button>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_4.5rem_5.5rem] gap-2 mt-1">
+                <select
+                  value={productoSeleccionado}
+                  onChange={(e) => setProductoSeleccionado(e.target.value)}
+                  className="w-full min-w-0 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Producto...</option>
+                  {productos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nombre} (stock: {p.stock})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="1"
+                  value={cantidad}
+                  onChange={(e) => setCantidad(e.target.value)}
+                  className="w-full min-w-0 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button type="button" onClick={agregarItem}>
+                  Agregar
+                </Button>
               </div>
 
               {items.length > 0 && (

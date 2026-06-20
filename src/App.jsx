@@ -11,6 +11,7 @@ import { useState } from "react";
 import Registro from "@/pages/Registro";
 import AsistenteIA from "@/pages/AsistenteIA";
 import Configuracion from "@/pages/Configuracion";
+import Proveedores from "@/pages/Proveedores";
 
 function AppRoutes() {
   const { user, cargando, esDueño } = useAuth();
@@ -48,6 +49,7 @@ function AppRoutes() {
             />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/productos" element={<Productos />} />
+            <Route path="/proveedores" element={<Proveedores />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route
               path="/asistente"

@@ -8,6 +8,7 @@ import {
   LogOut,
   Sparkles,
   Settings,
+  Truck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -15,6 +16,7 @@ const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/productos", label: "Productos", icon: Package },
+  { to: "/proveedores", label: "Proveedores", icon: Truck },
   { to: "/ventas", label: "Ventas", icon: ShoppingCart },
   { to: "/asistente", label: "Asistente IA", icon: Sparkles },
   { to: "/configuracion", label: "Configuración", icon: Settings },
