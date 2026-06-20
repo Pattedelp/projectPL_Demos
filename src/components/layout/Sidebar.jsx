@@ -33,7 +33,7 @@ function Sidebar() {
         <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
           <Store className="text-foreground" size={18} />
         </div>
-        <h2 className="text-lg font-bold text-foreground">Mi CRM</h2>
+        <h2 className="text-lg font-bold text-foreground">Workpilot</h2>{" "}
       </div>
 
       <nav className="flex flex-col gap-1">
@@ -60,7 +60,9 @@ function Sidebar() {
         <p className="text-sm text-foreground font-medium truncate">
           {negocio?.nombre || "Mi negocio"}
         </p>
-        <p className="text-xs text-muted-foreground mb-3">Plan Demo</p>
+        <p className="text-xs text-muted-foreground capitalize">
+          Plan {negocio?.plan || "básico"}
+        </p>
         <button
           onClick={logout}
           className="flex items-center gap-2 text-xs text-muted-foreground hover:text-red-400 transition-colors"

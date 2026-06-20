@@ -35,7 +35,9 @@ function Login({ onIrARegistro }) {
             <Store className="text-foreground" size={24} />
           </div>
           <h1 className="text-xl font-bold text-foreground">Iniciar sesión</h1>
-          <p className="text-muted-foreground text-sm mt-1">Ingresá a tu CRM</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Ingresá a Workpilot
+          </p>{" "}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
