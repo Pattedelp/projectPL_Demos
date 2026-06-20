@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Truck } from "lucide-react";
 
 function Ventas() {
   const [ventas, setVentas] = useState([]);
@@ -25,35 +26,39 @@ function Ventas() {
   const [items, setItems] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState("1");
+  const [proveedores, setProveedores] = useState([]);
+  const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
 
   useEffect(() => {
     obtenerTodo();
   }, []);
 
   async function obtenerTodo() {
-    setCargando(true);
-
-    const { data: dataVentas } = await supabase
-      .from("ventas")
-      .select("*, clientes(nombre), venta_items(*, productos(nombre))")
+    const { data: dataProductos, error } = await supabase
+      .from("productos")
+      .select("*, categorias(nombre), producto_proveedores(proveedor_id)")
       .eq("negocio_id", negocio.id)
       .order("created_at", { ascending: false });
 
-    const { data: dataClientes } = await supabase
-      .from("clientes")
-      .select("id, nombre")
-      .eq("negocio_id", negocio.id)
-      .order("nombre");
-
-    const { data: dataProductos } = await supabase
-      .from("productos")
+    const { data: dataCategorias } = await supabase
+      .from("categorias")
       .select("*")
       .eq("negocio_id", negocio.id)
       .order("nombre");
 
-    setVentas(dataVentas || []);
-    setClientes(dataClientes || []);
-    setProductos(dataProductos || []);
+    const { data: dataProveedores } = await supabase
+      .from("proveedores")
+      .select("*")
+      .eq("negocio_id", negocio.id)
+      .order("nombre");
+
+    if (error) {
+      console.error("Error trayendo productos:", error);
+    } else {
+      setProductos(dataProductos);
+    }
+    setCategorias(dataCategorias || []);
+    setProveedores(dataProveedores || []);
     setCargando(false);
   }
 

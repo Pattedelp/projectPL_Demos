@@ -13,6 +13,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, AlertTriangle, Pencil, FolderPlus } from "lucide-react";
+import { Truck } from "lucide-react";
+import { generarLinkWhatsApp, armarMensajeProveedor } from "@/lib/whatsapp";
+import { MessageCircle } from "lucide-react";
 
 const FORM_VACIO = {
   nombre: "",
@@ -35,6 +38,9 @@ function Productos() {
   const [nombreNuevaCategoria, setNombreNuevaCategoria] = useState("");
 
   const [form, setForm] = useState(FORM_VACIO);
+  const [proveedores, setProveedores] = useState([]);
+  const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
+  const [busquedaProveedor, setBusquedaProveedor] = useState("");
 
   useEffect(() => {
     if (negocio) {
@@ -45,12 +51,18 @@ function Productos() {
   async function obtenerTodo() {
     const { data: dataProductos, error } = await supabase
       .from("productos")
-      .select("*, categorias(nombre)")
+      .select("*, categorias(nombre), producto_proveedores(proveedor_id)")
       .eq("negocio_id", negocio.id)
       .order("created_at", { ascending: false });
 
     const { data: dataCategorias } = await supabase
       .from("categorias")
+      .select("*")
+      .eq("negocio_id", negocio.id)
+      .order("nombre");
+
+    const { data: dataProveedores } = await supabase
+      .from("proveedores")
       .select("*")
       .eq("negocio_id", negocio.id)
       .order("nombre");
@@ -61,6 +73,7 @@ function Productos() {
       setProductos(dataProductos);
     }
     setCategorias(dataCategorias || []);
+    setProveedores(dataProveedores || []);
     setCargando(false);
   }
 
@@ -71,6 +84,7 @@ function Productos() {
   function abrirNuevo() {
     setEditandoId(null);
     setForm(FORM_VACIO);
+    setProveedoresSeleccionados([]);
     setOpen(true);
   }
 
@@ -84,7 +98,16 @@ function Productos() {
       stock_minimo: String(producto.stock_minimo),
       categoria_id: producto.categoria_id || "",
     });
+    setProveedoresSeleccionados(
+      (producto.producto_proveedores || []).map((pp) => pp.proveedor_id),
+    );
     setOpen(true);
+  }
+
+  function toggleProveedor(id) {
+    setProveedoresSeleccionados((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
   }
 
   async function crearCategoria() {
@@ -124,26 +147,82 @@ function Productos() {
       negocio_id: negocio.id,
     };
 
-    let error;
+    let error, productoId;
+
     if (editandoId) {
+      productoId = editandoId;
       ({ error } = await supabase
         .from("productos")
         .update(payload)
         .eq("id", editandoId));
     } else {
-      ({ error } = await supabase.from("productos").insert([payload]));
+      const { data, error: errorInsert } = await supabase
+        .from("productos")
+        .insert([payload])
+        .select()
+        .single();
+      error = errorInsert;
+      productoId = data?.id;
     }
 
     if (error) {
       console.error("Error guardando producto:", error);
       alert("Hubo un error al guardar el producto");
-    } else {
-      setForm(FORM_VACIO);
-      setEditandoId(null);
-      setOpen(false);
-      obtenerTodo();
+      setGuardando(false);
+      return;
     }
+
+    await supabase
+      .from("producto_proveedores")
+      .delete()
+      .eq("producto_id", productoId);
+
+    if (proveedoresSeleccionados.length > 0) {
+      await supabase.from("producto_proveedores").insert(
+        proveedoresSeleccionados.map((proveedor_id) => ({
+          producto_id: productoId,
+          proveedor_id,
+        })),
+      );
+    }
+
+    setForm(FORM_VACIO);
+    setEditandoId(null);
+    setProveedoresSeleccionados([]);
+    setOpen(false);
+    obtenerTodo();
     setGuardando(false);
+  }
+
+  function obtenerResumenStockBajo() {
+    const productosStockBajo = productos.filter(
+      (p) => p.stock <= p.stock_minimo,
+    );
+
+    const porProveedor = {};
+
+    productosStockBajo.forEach((p) => {
+      const proveedorIds =
+        p.producto_proveedores?.map((pp) => pp.proveedor_id) || [];
+      if (proveedorIds.length === 0) return;
+
+      const primerProveedorId = proveedorIds[0];
+      if (!porProveedor[primerProveedorId])
+        porProveedor[primerProveedorId] = [];
+      porProveedor[primerProveedorId].push(p);
+    });
+
+    return porProveedor;
+  }
+
+  function contactarProveedor(proveedorId, productosDelProveedor) {
+    const proveedor = proveedores.find((p) => p.id === proveedorId);
+    if (!proveedor) return;
+    const mensaje = armarMensajeProveedor(
+      proveedor.nombre,
+      productosDelProveedor,
+    );
+    window.open(generarLinkWhatsApp(proveedor.telefono, mensaje), "_blank");
   }
 
   // Agrupar productos por categoría
@@ -153,6 +232,9 @@ function Productos() {
     if (!grupos[clave]) grupos[clave] = [];
     grupos[clave].push(p);
   });
+  const proveedoresFiltrados = proveedores.filter((p) =>
+    p.nombre.toLowerCase().includes(busquedaProveedor.toLowerCase()),
+  );
 
   return (
     <div className="p-6">
@@ -267,6 +349,62 @@ function Productos() {
                 )}
               </div>
 
+              <div>
+                <Label className="mb-2 block">
+                  Proveedores
+                  {proveedoresSeleccionados.length > 0 && (
+                    <span className="text-muted-foreground font-normal">
+                      {" "}
+                      ({proveedoresSeleccionados.length} seleccionado
+                      {proveedoresSeleccionados.length > 1 ? "s" : ""})
+                    </span>
+                  )}
+                </Label>
+                {proveedores.length === 0 ? (
+                  <p className="text-muted-foreground text-xs">
+                    No tenés proveedores cargados todavía.
+                  </p>
+                ) : (
+                  <>
+                    {proveedores.length > 6 && (
+                      <Input
+                        placeholder="Buscar proveedor..."
+                        value={busquedaProveedor}
+                        onChange={(e) => setBusquedaProveedor(e.target.value)}
+                        className="mb-2 h-8"
+                      />
+                    )}
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                      {proveedoresFiltrados.length === 0 ? (
+                        <p className="text-muted-foreground text-xs">
+                          Sin resultados.
+                        </p>
+                      ) : (
+                        proveedoresFiltrados.map((prov) => {
+                          const seleccionado =
+                            proveedoresSeleccionados.includes(prov.id);
+                          return (
+                            <button
+                              key={prov.id}
+                              type="button"
+                              onClick={() => toggleProveedor(prov.id)}
+                              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                                seleccionado
+                                  ? "bg-primary/20 border-primary text-primary"
+                                  : "border-border text-muted-foreground hover:border-muted-foreground"
+                              }`}
+                            >
+                              <Truck size={12} />
+                              {prov.nombre}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="precio">Precio</Label>
@@ -311,6 +449,42 @@ function Productos() {
             </form>
           </DialogContent>
         </Dialog>
+        {(() => {
+          const resumen = obtenerResumenStockBajo();
+          const proveedorIds = Object.keys(resumen);
+          if (proveedorIds.length === 0) return null;
+
+          return (
+            <div className="bg-card border border-amber-500/30 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <MessageCircle size={16} className="text-amber-500" />
+                <h3 className="text-foreground font-medium text-sm">
+                  Tenés stock bajo en {proveedorIds.length} proveedor(es)
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {proveedorIds.map((proveedorId) => {
+                  const proveedor = proveedores.find(
+                    (p) => p.id === proveedorId,
+                  );
+                  const cant = resumen[proveedorId].length;
+                  return (
+                    <button
+                      key={proveedorId}
+                      onClick={() =>
+                        contactarProveedor(proveedorId, resumen[proveedorId])
+                      }
+                      className="flex items-center gap-1.5 text-xs bg-green-600/10 text-green-500 hover:bg-green-600/20 px-3 py-1.5 rounded-full transition-colors"
+                    >
+                      <MessageCircle size={12} />
+                      {proveedor?.nombre} ({cant})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {cargando ? (
@@ -363,7 +537,7 @@ function Productos() {
                           {producto.descripcion}
                         </p>
                       )}
-                      <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-2">
+                      <div className="flex items-center justify-between pt-3 border-t border-border mt-2">
                         <span className="text-foreground font-semibold">
                           ${Number(producto.precio).toLocaleString("es-AR")}
                         </span>
@@ -373,6 +547,35 @@ function Productos() {
                           Stock: {producto.stock}
                         </span>
                       </div>
+
+                      {stockBajo &&
+                        producto.producto_proveedores?.length > 0 && (
+                          <button
+                            onClick={() => {
+                              const proveedor = proveedores.find(
+                                (p) =>
+                                  p.id ===
+                                  producto.producto_proveedores[0].proveedor_id,
+                              );
+                              if (!proveedor) return;
+                              const mensaje = armarMensajeProveedor(
+                                proveedor.nombre,
+                                [producto],
+                              );
+                              window.open(
+                                generarLinkWhatsApp(
+                                  proveedor.telefono,
+                                  mensaje,
+                                ),
+                                "_blank",
+                              );
+                            }}
+                            className="w-full mt-2 flex items-center justify-center gap-1.5 text-xs bg-green-600/10 text-green-500 hover:bg-green-600/20 px-2 py-1.5 rounded-md transition-colors"
+                          >
+                            <MessageCircle size={12} />
+                            Pedir reposición
+                          </button>
+                        )}
                     </div>
                   );
                 })}
