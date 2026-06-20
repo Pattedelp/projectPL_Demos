@@ -162,8 +162,10 @@ function Ventas() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Ventas</h1>
-          <p className="text-slate-400 mt-1">Historial y carga de ventas.</p>
+          <h1 className="text-2xl font-bold text-foreground">Ventas</h1>
+          <p className="text-muted-foreground mt-1">
+            Historial y carga de ventas.
+          </p>
         </div>
 
         <Dialog
@@ -191,7 +193,7 @@ function Ventas() {
                   id="cliente"
                   value={clienteId}
                   onChange={(e) => setClienteId(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 mt-1 outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 mt-1 outline-none focus:ring-2 focus:ring-blue-600"
                 >
                   <option value="">Seleccionar cliente...</option>
                   {clientes.map((c) => (
@@ -202,13 +204,13 @@ function Ventas() {
                 </select>
               </div>
 
-              <div className="border-t border-slate-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <Label>Agregar productos</Label>
                 <div className="flex gap-2 mt-1">
                   <select
                     value={productoSeleccionado}
                     onChange={(e) => setProductoSeleccionado(e.target.value)}
-                    className="flex-1 bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="flex-1 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
                   >
                     <option value="">Producto...</option>
                     {productos.map((p) => (
@@ -222,7 +224,7 @@ function Ventas() {
                     min="1"
                     value={cantidad}
                     onChange={(e) => setCantidad(e.target.value)}
-                    className="w-20 bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-20 bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-600"
                   />
                   <Button type="button" onClick={agregarItem}>
                     Agregar
@@ -235,20 +237,20 @@ function Ventas() {
                   {items.map((i) => (
                     <div
                       key={i.producto_id}
-                      className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+                      className="flex items-center justify-between bg-card border border-border rounded-lg px-3 py-2"
                     >
                       <div>
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-foreground text-sm font-medium">
                           {i.nombre}
                         </p>
-                        <p className="text-slate-400 text-xs">
+                        <p className="text-muted-foreground text-xs">
                           {i.cantidad} x ${i.precio_unitario} = $
                           {(i.cantidad * i.precio_unitario).toLocaleString()}
                         </p>
                       </div>
                       <button
                         onClick={() => quitarItem(i.producto_id)}
-                        className="text-slate-500 hover:text-red-400 transition-colors"
+                        className="text-muted-foreground hover:text-red-400 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -257,9 +259,9 @@ function Ventas() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between border-t border-slate-700 pt-4">
-                <span className="text-slate-400">Total</span>
-                <span className="text-white text-xl font-bold">
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <span className="text-muted-foreground">Total</span>
+                <span className="text-foreground text-xl font-bold">
                   ${total.toLocaleString()}
                 </span>
               </div>
@@ -277,35 +279,37 @@ function Ventas() {
       </div>
 
       {cargando ? (
-        <p className="text-slate-400">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       ) : ventas.length === 0 ? (
-        <p className="text-slate-400">Todavía no hay ventas registradas.</p>
+        <p className="text-muted-foreground">
+          Todavía no hay ventas registradas.
+        </p>
       ) : (
         <div className="space-y-3">
           {ventas.map((venta) => (
             <div
               key={venta.id}
-              className="bg-slate-800 border border-slate-700 rounded-lg p-4"
+              className="bg-card border border-border rounded-lg p-4"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart size={16} className="text-blue-400" />
-                  <span className="text-white font-semibold">
+                  <ShoppingCart size={16} className="text-primary" />
+                  <span className="text-foreground font-semibold">
                     {venta.clientes?.nombre || "Cliente eliminado"}
                   </span>
                 </div>
-                <span className="text-white font-bold">
+                <span className="text-foreground font-bold">
                   ${Number(venta.total).toLocaleString()}
                 </span>
               </div>
-              <p className="text-slate-500 text-xs mb-2">
+              <p className="text-muted-foreground text-xs mb-2">
                 {new Date(venta.created_at).toLocaleString("es-AR")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {venta.venta_items?.map((item) => (
                   <span
                     key={item.id}
-                    className="text-xs bg-slate-700/50 text-slate-300 px-2 py-1 rounded-md"
+                    className="text-xs bg-slate-700/50 text-muted-foreground px-2 py-1 rounded-md"
                   >
                     {item.cantidad}x {item.productos?.nombre}
                   </span>

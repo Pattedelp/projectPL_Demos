@@ -10,6 +10,7 @@ import Ventas from "@/pages/Ventas";
 import { useState } from "react";
 import Registro from "@/pages/Registro";
 import AsistenteIA from "@/pages/AsistenteIA";
+import Configuracion from "@/pages/Configuracion";
 
 function AppRoutes() {
   const { user, cargando } = useAuth();
@@ -17,8 +18,8 @@ function AppRoutes() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <p className="text-slate-400">Cargando...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
   }
@@ -35,7 +36,7 @@ function AppRoutes() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-900">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
@@ -47,6 +48,7 @@ function AppRoutes() {
             <Route path="/ventas" element={<Ventas />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route path="/asistente" element={<AsistenteIA />} />
+            <Route path="/configuracion" element={<Configuracion />} />
           </Routes>
         </main>
       </div>

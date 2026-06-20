@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { aplicarTema } from "@/lib/temas";
 
 const AuthContext = createContext();
 
@@ -44,6 +45,9 @@ export function AuthProvider({ children }) {
       .eq("user_id", userId)
       .single();
     setNegocio(data);
+    if (data?.color_tema) {
+      aplicarTema(data.color_tema);
+    }
     setCargando(false);
   }
 
@@ -73,7 +77,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, negocio, cargando, login, logout, registrar }}
+      value={{
+        user,
+        negocio,
+        cargando,
+        login,
+        logout,
+        registrar,
+        setNegocioLocal: setNegocio,
+      }}
     >
       {children}
     </AuthContext.Provider>

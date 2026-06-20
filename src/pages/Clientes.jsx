@@ -104,8 +104,8 @@ function Clientes() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Clientes</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
+          <p className="text-muted-foreground mt-1">
             Listado de clientes del negocio.
           </p>
         </div>
@@ -186,40 +186,44 @@ function Clientes() {
       </div>
 
       {cargando ? (
-        <p className="text-slate-400">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       ) : clientes.length === 0 ? (
-        <p className="text-slate-400">Todavía no hay clientes cargados.</p>
+        <p className="text-muted-foreground">
+          Todavía no hay clientes cargados.
+        </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {clientes.map((cliente) => (
             <div
               key={cliente.id}
-              className="group relative bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-slate-600 hover:bg-slate-800/80 transition-all"
+              className="group relative bg-card border border-border rounded-lg p-4 hover:border-border hover:bg-card/80 transition-all"
             >
               <button
                 onClick={() => abrirEdicion(cliente)}
-                className="absolute top-3 right-3 text-slate-500 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Editar cliente"
               >
                 <Pencil size={15} />
               </button>
 
               <div className="flex items-center gap-3 mb-3 pr-6">
-                <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-semibold text-sm shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
                   {cliente.nombre.charAt(0).toUpperCase()}
                 </div>
-                <h3 className="text-white font-semibold truncate">
+                <h3 className="text-foreground font-semibold truncate">
                   {cliente.nombre}
                 </h3>
               </div>
               <div className="space-y-1">
                 {cliente.email && (
-                  <p className="text-slate-400 text-sm truncate">
+                  <p className="text-muted-foreground text-sm truncate">
                     {cliente.email}
                   </p>
                 )}
                 {cliente.telefono && (
-                  <p className="text-slate-400 text-sm">{cliente.telefono}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {cliente.telefono}
+                  </p>
                 )}
               </div>
             </div>

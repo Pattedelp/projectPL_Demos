@@ -87,17 +87,19 @@ function AsistenteIA() {
   if (!tieneAcceso) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-white mb-1">Asistente IA</h1>
-        <p className="text-slate-400 mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-1">
+          Asistente IA
+        </h1>
+        <p className="text-muted-foreground mb-6">
           Consultas inteligentes sobre tu negocio.
         </p>
 
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-slate-800 border border-slate-700 rounded-lg">
-          <Lock className="text-slate-600 mb-3" size={32} />
-          <p className="text-white font-medium mb-1">
+        <div className="flex flex-col items-center justify-center py-20 text-center bg-card border border-border rounded-lg">
+          <Lock className="border-border mb-3" size={32} />
+          <p className="text-foreground font-medium mb-1">
             Disponible en el plan Premium
           </p>
-          <p className="text-slate-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             Hablá con tu proveedor para acceder al asistente con IA.
           </p>
         </div>
@@ -108,10 +110,10 @@ function AsistenteIA() {
   return (
     <div className="p-6 flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex items-center gap-2 mb-1">
-        <Sparkles className="text-blue-400" size={22} />
-        <h1 className="text-2xl font-bold text-white">Asistente IA</h1>
+        <Sparkles className="text-primary" size={22} />
+        <h1 className="text-2xl font-bold text-foreground">Asistente IA</h1>
       </div>
-      <p className="text-slate-400 mb-6">
+      <p className="text-muted-foreground mb-6">
         Preguntale lo que quieras sobre tu negocio.
       </p>
 
@@ -122,7 +124,7 @@ function AsistenteIA() {
               <button
                 key={p}
                 onClick={() => enviarPregunta(p)}
-                className="text-sm bg-slate-800 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg hover:border-blue-600 hover:text-white transition-colors"
+                className="text-sm bg-card border border-border text-muted-foreground px-3 py-2 rounded-lg hover:border-primary hover:text-foreground transition-colors"
               >
                 {p}
               </button>
@@ -138,8 +140,8 @@ function AsistenteIA() {
             <div
               className={`rounded-lg px-4 py-3 text-sm ${
                 m.tipo === "usuario"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-800 border border-slate-700 text-slate-200"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card border border-border text-foreground"
               }`}
             >
               {m.texto}
@@ -148,7 +150,7 @@ function AsistenteIA() {
         ))}
 
         {cargando && (
-          <div className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm text-slate-400 max-w-lg">
+          <div className="bg-card border border-border rounded-lg px-4 py-3 text-sm text-muted-foreground max-w-lg">
             Pensando...
           </div>
         )}
@@ -160,7 +162,7 @@ function AsistenteIA() {
           value={pregunta}
           onChange={(e) => setPregunta(e.target.value)}
           placeholder="Preguntale algo a tu asistente..."
-          className="flex-1 bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-600"
+          className="flex-1 bg-card border border-border text-foreground text-sm rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
         />
         <Button type="submit" disabled={cargando}>
           <Send size={18} />

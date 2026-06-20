@@ -28,14 +28,14 @@ function Login({ onIrARegistro }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center mb-3">
-            <Store className="text-white" size={24} />
+            <Store className="text-foreground" size={24} />
           </div>
-          <h1 className="text-xl font-bold text-white">Iniciar sesión</h1>
-          <p className="text-slate-400 text-sm mt-1">Ingresá a tu CRM</p>
+          <h1 className="text-xl font-bold text-foreground">Iniciar sesión</h1>
+          <p className="text-muted-foreground text-sm mt-1">Ingresá a tu CRM</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,7 +73,7 @@ function Login({ onIrARegistro }) {
           <button
             type="button"
             onClick={onIrARegistro}
-            className="w-full text-center text-sm text-slate-400 hover:text-white transition-colors"
+            className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             ¿No tenés cuenta? Registrate
           </button>
