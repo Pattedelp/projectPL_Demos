@@ -13,7 +13,7 @@ import AsistenteIA from "@/pages/AsistenteIA";
 import Configuracion from "@/pages/Configuracion";
 
 function AppRoutes() {
-  const { user, cargando } = useAuth();
+  const { user, cargando, esDueño } = useAuth();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   if (cargando) {
@@ -42,13 +42,24 @@ function AppRoutes() {
         <Topbar />
         <main className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route
+              path="/"
+              element={esDueño ? <Dashboard /> : <Navigate to="/clientes" />}
+            />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/productos" element={<Productos />} />
             <Route path="/ventas" element={<Ventas />} />
-            <Route path="*" element={<Navigate to="/" />} />
-            <Route path="/asistente" element={<AsistenteIA />} />
-            <Route path="/configuracion" element={<Configuracion />} />
+            <Route
+              path="/asistente"
+              element={esDueño ? <AsistenteIA /> : <Navigate to="/clientes" />}
+            />
+            <Route
+              path="/configuracion"
+              element={
+                esDueño ? <Configuracion /> : <Navigate to="/clientes" />
+              }
+            />
+            <Route path="*" element={<Navigate to="/clientes" />} />
           </Routes>
         </main>
       </div>

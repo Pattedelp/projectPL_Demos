@@ -7,6 +7,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [negocio, setNegocio] = useState(null);
+  const [rol, setRol] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export function AuthProvider({ children }) {
         } else {
           setUser(null);
           setNegocio(null);
+          setRol(null);
         }
       },
     );
@@ -39,14 +41,18 @@ export function AuthProvider({ children }) {
   }
 
   async function obtenerNegocio(userId) {
-    const { data } = await supabase
-      .from("negocios")
-      .select("*")
+    const { data: miembro } = await supabase
+      .from("miembros_negocio")
+      .select("rol, negocio_id, negocios(*)")
       .eq("user_id", userId)
       .single();
-    setNegocio(data);
-    if (data?.color_tema) {
-      aplicarTema(data.color_tema);
+
+    if (miembro) {
+      setNegocio(miembro.negocios);
+      setRol(miembro.rol);
+      if (miembro.negocios?.color_tema) {
+        aplicarTema(miembro.negocios.color_tema);
+      }
     }
     setCargando(false);
   }
@@ -59,20 +65,30 @@ export function AuthProvider({ children }) {
     return error;
   }
 
+  async function logout() {
+    await supabase.auth.signOut();
+  }
+
   async function registrar(email, password, nombreNegocio) {
     const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) return error;
 
-    const { error: errorNegocio } = await supabase
+    const { data: negocioCreado, error: errorNegocio } = await supabase
       .from("negocios")
-      .insert([{ nombre: nombreNegocio, user_id: data.user.id }]);
+      .insert([{ nombre: nombreNegocio, user_id: data.user.id }])
+      .select()
+      .single();
 
-    return errorNegocio;
-  }
+    if (errorNegocio) return errorNegocio;
 
-  async function logout() {
-    await supabase.auth.signOut();
+    const { error: errorMiembro } = await supabase
+      .from("miembros_negocio")
+      .insert([
+        { negocio_id: negocioCreado.id, user_id: data.user.id, rol: "dueño" },
+      ]);
+
+    return errorMiembro;
   }
 
   return (
@@ -80,6 +96,8 @@ export function AuthProvider({ children }) {
       value={{
         user,
         negocio,
+        rol,
+        esDueño: rol === "dueño",
         cargando,
         login,
         logout,

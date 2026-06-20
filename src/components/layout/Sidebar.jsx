@@ -21,8 +21,12 @@ const links = [
 ];
 
 function Sidebar() {
-  const { negocio, logout } = useAuth();
-
+  const { negocio, logout, esDueño } = useAuth();
+  const linksVisibles = esDueño
+    ? links
+    : links.filter(
+        (l) => !["/", "/asistente", "/configuracion"].includes(l.to),
+      );
   return (
     <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-8 px-2">
@@ -33,7 +37,7 @@ function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1">
-        {links.map(({ to, label, icon: Icon }) => (
+        {linksVisibles.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}

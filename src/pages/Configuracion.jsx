@@ -11,6 +11,7 @@ import { CreditCard, Sparkles } from "lucide-react";
 import { Tag, Trash2, Pencil, X } from "lucide-react";
 import { exportarCSV } from "@/lib/exportar";
 import { Download } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 function Configuracion() {
   const { negocio, setNegocioLocal } = useAuth();
@@ -21,6 +22,10 @@ function Configuracion() {
   const [categorias, setCategorias] = useState([]);
   const [editandoCategoriaId, setEditandoCategoriaId] = useState(null);
   const [nombreEdicion, setNombreEdicion] = useState("");
+  const [miembros, setMiembros] = useState([]);
+  const [emailInvitar, setEmailInvitar] = useState("");
+  const [invitando, setInvitando] = useState(false);
+  const [mensajeInvitacion, setMensajeInvitacion] = useState(null);
 
   const [datosForm, setDatosForm] = useState({
     nombre: "",
@@ -40,8 +45,47 @@ function Configuracion() {
         horario: negocio.horario || "",
       });
       obtenerCategorias();
+      obtenerMiembros();
     }
   }, [negocio]);
+
+  async function obtenerMiembros() {
+    const { data } = await supabase
+      .from("miembros_negocio")
+      .select("id, rol, user_id")
+      .eq("negocio_id", negocio.id);
+    setMiembros(data || []);
+  }
+
+  async function invitarEmpleado(e) {
+    e.preventDefault();
+    setInvitando(true);
+    setMensajeInvitacion(null);
+
+    const { data, error } = await supabase.functions.invoke(
+      "invitar-empleado",
+      {
+        body: { email: emailInvitar, negocioId: negocio.id },
+      },
+    );
+
+    if (error) {
+      setMensajeInvitacion({
+        tipo: "error",
+        texto: "Error al enviar la invitación",
+      });
+    } else if (data.error) {
+      setMensajeInvitacion({ tipo: "error", texto: data.error });
+    } else {
+      setMensajeInvitacion({
+        tipo: "exito",
+        texto: "Invitación enviada correctamente",
+      });
+      setEmailInvitar("");
+      obtenerMiembros();
+    }
+    setInvitando(false);
+  }
 
   async function obtenerCategorias() {
     const { data } = await supabase
@@ -448,6 +492,59 @@ function Configuracion() {
               Ventas
             </Button>
           </div>
+        </div>
+        <div className="bg-card border border-border rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <UserPlus size={18} className="text-foreground" />
+            <h2 className="text-foreground font-semibold">
+              Usuarios del negocio
+            </h2>
+          </div>
+          <p className="text-muted-foreground text-sm mb-5">
+            {miembros.length} de {PLANES[negocio?.plan]?.precio ? "" : ""}
+            usuario(s) según tu plan {negocio?.plan || "básico"}.
+          </p>
+
+          <div className="space-y-2 mb-5">
+            {miembros.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2"
+              >
+                <span className="text-foreground text-sm">
+                  {m.user_id === negocio?.user_id ? "Vos (dueño)" : "Empleado"}
+                </span>
+                <span className="text-muted-foreground text-xs capitalize">
+                  {m.rol}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <form onSubmit={invitarEmpleado} className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="email@empleado.com"
+              value={emailInvitar}
+              onChange={(e) => setEmailInvitar(e.target.value)}
+              required
+            />
+            <Button type="submit" disabled={invitando}>
+              {invitando ? "Enviando..." : "Invitar"}
+            </Button>
+          </form>
+
+          {mensajeInvitacion && (
+            <p
+              className={`text-sm mt-2 ${
+                mensajeInvitacion.tipo === "error"
+                  ? "text-red-400"
+                  : "text-green-500"
+              }`}
+            >
+              {mensajeInvitacion.texto}
+            </p>
+          )}
         </div>
       </div>
     </div>
