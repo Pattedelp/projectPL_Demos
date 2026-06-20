@@ -9,6 +9,7 @@ import Productos from "@/pages/Productos";
 import Ventas from "@/pages/Ventas";
 import { useState } from "react";
 import Registro from "@/pages/Registro";
+import AsistenteIA from "@/pages/AsistenteIA";
 
 function AppRoutes() {
   const { user, cargando } = useAuth();
@@ -45,6 +46,7 @@ function AppRoutes() {
             <Route path="/productos" element={<Productos />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route path="*" element={<Navigate to="/" />} />
+            <Route path="/asistente" element={<AsistenteIA />} />
           </Routes>
         </main>
       </div>

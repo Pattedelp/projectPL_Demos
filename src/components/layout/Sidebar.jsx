@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   Store,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -14,6 +15,7 @@ const links = [
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/productos", label: "Productos", icon: Package },
   { to: "/ventas", label: "Ventas", icon: ShoppingCart },
+  { to: "/asistente", label: "Asistente IA", icon: Sparkles },
 ];
 
 function Sidebar() {
