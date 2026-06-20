@@ -1,3 +1,5 @@
+import { useAuth } from "@/context/AuthContext";
+import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Users, Package, AlertTriangle, DollarSign } from "lucide-react";
@@ -15,6 +17,9 @@ function Dashboard() {
   const [cargando, setCargando] = useState(true);
   const [totalClientes, setTotalClientes] = useState(0);
   const [productos, setProductos] = useState([]);
+  const { negocio } = useAuth();
+  const tieneAccesoGrafico =
+    negocio?.plan === "pro" || negocio?.plan === "premium";
 
   useEffect(() => {
     obtenerDatos();
@@ -108,7 +113,17 @@ function Dashboard() {
 
       <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
         <h2 className="text-white font-semibold mb-4">Stock por producto</h2>
-        {datosGrafico.length === 0 ? (
+        {!tieneAccesoGrafico ? (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <Lock className="text-slate-600 mb-3" size={28} />
+            <p className="text-slate-400 text-sm mb-1">
+              Los gráficos están disponibles en el plan Pro
+            </p>
+            <p className="text-slate-500 text-xs">
+              Hablá con tu proveedor para upgradear
+            </p>
+          </div>
+        ) : datosGrafico.length === 0 ? (
           <p className="text-slate-400 text-sm">
             No hay productos cargados todavía.
           </p>
