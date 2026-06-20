@@ -105,8 +105,8 @@ function Ventas() {
   }
 
   async function handleGuardarVenta() {
-    if (!clienteId || items.length === 0) {
-      alert("Elegí un cliente y al menos un producto");
+    if (items.length === 0) {
+      alert("Agregá al menos un producto");
       return;
     }
 
@@ -114,7 +114,9 @@ function Ventas() {
 
     const { data: ventaCreada, error: errorVenta } = await supabase
       .from("ventas")
-      .insert([{ cliente_id: clienteId, total, negocio_id: negocio.id }])
+      .insert([
+        { cliente_id: clienteId || null, total, negocio_id: negocio.id },
+      ])
       .select()
       .single();
 
@@ -193,9 +195,9 @@ function Ventas() {
                   id="cliente"
                   value={clienteId}
                   onChange={(e) => setClienteId(e.target.value)}
-                  className="w-full bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 mt-1 outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 mt-1 outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Seleccionar cliente...</option>
+                  <option value="">Consumidor final (sin registrar)</option>
                   {clientes.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.nombre}
@@ -295,7 +297,7 @@ function Ventas() {
                 <div className="flex items-center gap-2">
                   <ShoppingCart size={16} className="text-primary" />
                   <span className="text-foreground font-semibold">
-                    {venta.clientes?.nombre || "Cliente eliminado"}
+                    {venta.clientes?.nombre || "Consumidor final"}
                   </span>
                 </div>
                 <span className="text-foreground font-bold">
