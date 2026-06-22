@@ -30,12 +30,9 @@ function Sidebar() {
         (l) => !["/", "/asistente", "/configuracion"].includes(l.to),
       );
   return (
-    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border p-4 flex flex-col">
-      <div className="flex items-center gap-2 mb-8 px-2">
-        <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-          <Store className="text-foreground" size={18} />
-        </div>
-        <h2 className="text-lg font-bold text-foreground">Workpilot</h2>{" "}
+<aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border p-4 flex flex-col">
+      <div className="flex items-center mb-8 px-2">
+        <img src="/workpilot_logo.png" alt="Workpilot" className="h-7" />
       </div>
 
       <nav className="flex flex-col gap-1">
