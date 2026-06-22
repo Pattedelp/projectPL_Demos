@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, ShoppingCart } from "lucide-react";
-import { Truck } from "lucide-react";
+import { useSucursal } from "@/context/SucursalContext"
 
 function Ventas() {
   const [ventas, setVentas] = useState([]);
@@ -26,41 +26,47 @@ function Ventas() {
   const [items, setItems] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState("1");
-  const [proveedores, setProveedores] = useState([]);
-  const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
-
-  useEffect(() => {
-    obtenerTodo();
-  }, []);
-
-  async function obtenerTodo() {
-    const { data: dataProductos, error } = await supabase
-      .from("productos")
-      .select("*, categorias(nombre), producto_proveedores(proveedor_id)")
-      .eq("negocio_id", negocio.id)
-      .order("created_at", { ascending: false });
-
-    const { data: dataCategorias } = await supabase
-      .from("categorias")
-      .select("*")
-      .eq("negocio_id", negocio.id)
-      .order("nombre");
-
-    const { data: dataProveedores } = await supabase
-      .from("proveedores")
-      .select("*")
-      .eq("negocio_id", negocio.id)
-      .order("nombre");
-
-    if (error) {
-      console.error("Error trayendo productos:", error);
-    } else {
-      setProductos(dataProductos);
-    }
-    setCategorias(dataCategorias || []);
-    setProveedores(dataProveedores || []);
-    setCargando(false);
+const { sucursalActual } = useSucursal()
+useEffect(() => {
+  if (negocio && sucursalActual) {
+    obtenerTodo()
   }
+}, [negocio, sucursalActual])
+
+async function obtenerTodo() {
+  setCargando(true)
+
+  const { data: dataVentas } = await supabase
+    .from("ventas")
+    .select("*, clientes(nombre), venta_items(*, productos(nombre))")
+    .eq("negocio_id", negocio.id)
+    .eq("sucursal_id", sucursalActual.id)
+    .order("created_at", { ascending: false })
+
+  const { data: dataClientes } = await supabase
+    .from("clientes")
+    .select("id, nombre")
+    .eq("negocio_id", negocio.id)
+    .order("nombre")
+
+  const { data: dataProductos } = await supabase
+    .from("productos")
+    .select("*, stock_sucursal!inner(stock, stock_minimo, sucursal_id)")
+    .eq("negocio_id", negocio.id)
+    .eq("stock_sucursal.sucursal_id", sucursalActual.id)
+    .order("nombre")
+
+  setVentas(dataVentas || [])
+  setClientes(dataClientes || [])
+
+  const productosConStock = (dataProductos || []).map((p) => ({
+    ...p,
+    stock: p.stock_sucursal?.[0]?.stock ?? 0,
+    stock_minimo: p.stock_sucursal?.[0]?.stock_minimo ?? 5,
+  }))
+  setProductos(productosConStock)
+  setCargando(false)
+}
 
   function agregarItem() {
     if (!productoSeleccionado || !cantidad || Number(cantidad) <= 0) return;
@@ -120,7 +126,7 @@ function Ventas() {
     const { data: ventaCreada, error: errorVenta } = await supabase
       .from("ventas")
       .insert([
-        { cliente_id: clienteId || null, total, negocio_id: negocio.id },
+        { cliente_id: clienteId || null, total, negocio_id: negocio.id, sucursal_id: sucursalActual.id, },
       ])
       .select()
       .single();
@@ -150,15 +156,17 @@ function Ventas() {
       return;
     }
 
-    for (const i of items) {
-      const producto = productos.find((p) => p.id === i.producto_id);
-      const nuevoStock = producto.stock - i.cantidad;
-      await supabase
-        .from("productos")
-        .update({ stock: nuevoStock })
-        .eq("id", i.producto_id);
-    }
+for (const i of items) {
+  const producto = productos.find((p) => p.id === i.producto_id)
+  const nuevoStock = producto.stock - i.cantidad
+  await supabase
+    .from("stock_sucursal")
+    .update({ stock: nuevoStock })
+    .eq("producto_id", i.producto_id)
+    .eq("sucursal_id", sucursalActual.id)
+}
 
+    
     resetForm();
     setOpen(false);
     obtenerTodo();

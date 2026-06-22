@@ -12,6 +12,8 @@ import { Tag, Trash2, Pencil, X } from "lucide-react";
 import { exportarCSV } from "@/lib/exportar";
 import { Download } from "lucide-react";
 import { UserPlus } from "lucide-react";
+import { useSucursal } from "@/context/SucursalContext"
+import { Building2 } from "lucide-react"
 
 function Configuracion() {
   const { negocio, setNegocioLocal } = useAuth();
@@ -35,6 +37,10 @@ function Configuracion() {
   });
   const [guardandoDatos, setGuardandoDatos] = useState(false);
   const [mensajeExito, setMensajeExito] = useState(false);
+const { sucursales, recargarSucursales } = useSucursal()
+const [nombreSucursal, setNombreSucursal] = useState("")
+const [direccionSucursal, setDireccionSucursal] = useState("")
+const [agregandoSucursal, setAgregandoSucursal] = useState(false)
 
   useEffect(() => {
     if (negocio) {
@@ -210,6 +216,40 @@ function Configuracion() {
     exportarCSV(datosFormateados, "ventas");
   }
 
+  async function agregarSucursal(e) {
+  e.preventDefault()
+  if (!nombreSucursal.trim()) return
+  setAgregandoSucursal(true)
+
+  const { error } = await supabase
+    .from("sucursales")
+    .insert([{
+      nombre: nombreSucursal,
+      direccion: direccionSucursal,
+      negocio_id: negocio.id,
+    }])
+
+  if (error) {
+    alert("Error al agregar la sucursal")
+  } else {
+    setNombreSucursal("")
+    setDireccionSucursal("")
+    recargarSucursales()
+  }
+  setAgregandoSucursal(false)
+}
+
+async function borrarSucursal(id) {
+  if (sucursales.length <= 1) {
+    alert("El negocio debe tener al menos una sucursal")
+    return
+  }
+  const confirmar = confirm("¿Borrar esta sucursal? Se perderán sus ventas y stock asociados.")
+  if (!confirmar) return
+
+  const { error } = await supabase.from("sucursales").delete().eq("id", id)
+  if (!error) recargarSucursales()
+}
   return (
     <div className="p-6 max-w-2xl">
       <div className="flex items-center gap-2 mb-1">
@@ -224,6 +264,58 @@ function Configuracion() {
             <Store size={18} className="text-foreground" />
             <h2 className="text-foreground font-semibold">Datos del negocio</h2>
           </div>
+          <div className="bg-card border border-border rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <Building2 size={18} className="text-foreground" />
+            <h2 className="text-foreground font-semibold">Sucursales</h2>
+          </div>
+          <p className="text-muted-foreground text-sm mb-5">
+            Gestioná las sucursales de tu negocio. El selector aparece automáticamente en la barra superior cuando tenés más de una.
+          </p>
+
+          {sucursales.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {sucursales.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2"
+                >
+                  <div>
+                    <p className="text-foreground text-sm font-medium">{s.nombre}</p>
+                    {s.direccion && (
+                      <p className="text-muted-foreground text-xs">{s.direccion}</p>
+                    )}
+                  </div>
+                  {sucursales.length > 1 && (
+                    <button
+                      onClick={() => borrarSucursal(s.id)}
+                      className="text-muted-foreground hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={agregarSucursal} className="flex gap-2">
+            <Input
+              placeholder="Nombre (ej: Sucursal Centro)"
+              value={nombreSucursal}
+              onChange={(e) => setNombreSucursal(e.target.value)}
+              required
+            />
+            <Input
+              placeholder="Dirección (opcional)"
+              value={direccionSucursal}
+              onChange={(e) => setDireccionSucursal(e.target.value)}
+            />
+            <Button type="submit" disabled={agregandoSucursal}>
+              Agregar
+            </Button>
+          </form>
+        </div>
           <p className="text-muted-foreground text-sm mb-5">
             Esta información puede aparecer en reportes o comprobantes.
           </p>

@@ -12,6 +12,7 @@ import Registro from "@/pages/Registro";
 import AsistenteIA from "@/pages/AsistenteIA";
 import Configuracion from "@/pages/Configuracion";
 import Proveedores from "@/pages/Proveedores";
+import { SucursalProvider } from "@/context/SucursalContext"
 
 function AppRoutes() {
   const { user, cargando, esDueño } = useAuth();
@@ -73,10 +74,12 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <SucursalProvider>
+          <AppRoutes />
+        </SucursalProvider>
       </AuthProvider>
     </BrowserRouter>
-  );
+  )
 }
 
 export default App;

@@ -16,7 +16,7 @@ import { Plus, AlertTriangle, Pencil, FolderPlus } from "lucide-react";
 import { Truck } from "lucide-react";
 import { generarLinkWhatsApp, armarMensajeProveedor } from "@/lib/whatsapp";
 import { MessageCircle } from "lucide-react";
-
+import { useSucursal } from "@/context/SucursalContext"
 const FORM_VACIO = {
   nombre: "",
   descripcion: "",
@@ -41,19 +41,26 @@ function Productos() {
   const [proveedores, setProveedores] = useState([]);
   const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
   const [busquedaProveedor, setBusquedaProveedor] = useState("");
+const { sucursalActual } = useSucursal();
 
-  useEffect(() => {
-    if (negocio) {
-      obtenerTodo();
-    }
-  }, [negocio]);
+useEffect(() => {
+  if (negocio && sucursalActual) {
+    obtenerTodo()
+  }
+}, [negocio, sucursalActual])
 
   async function obtenerTodo() {
-    const { data: dataProductos, error } = await supabase
-      .from("productos")
-      .select("*, categorias(nombre), producto_proveedores(proveedor_id)")
-      .eq("negocio_id", negocio.id)
-      .order("created_at", { ascending: false });
+const { data: dataProductos, error } = await supabase
+  .from("productos")
+  .select(`
+    *,
+    categorias(nombre),
+    producto_proveedores(proveedor_id),
+    stock_sucursal!inner(stock, stock_minimo, sucursal_id)
+  `)
+  .eq("negocio_id", negocio.id)
+  .eq("stock_sucursal.sucursal_id", sucursalActual.id)
+  .order("created_at", { ascending: false })
 
     const { data: dataCategorias } = await supabase
       .from("categorias")
@@ -70,7 +77,12 @@ function Productos() {
     if (error) {
       console.error("Error trayendo productos:", error);
     } else {
-      setProductos(dataProductos);
+      const productosConStock = (dataProductos || []).map((p) => ({
+  ...p,
+  stock: p.stock_sucursal?.[0]?.stock ?? 0,
+  stock_minimo: p.stock_sucursal?.[0]?.stock_minimo ?? 5,
+}))
+setProductos(productosConStock)
     }
     setCategorias(dataCategorias || []);
     setProveedores(dataProveedores || []);
@@ -137,15 +149,13 @@ function Productos() {
     e.preventDefault();
     setGuardando(true);
 
-    const payload = {
-      nombre: form.nombre,
-      descripcion: form.descripcion,
-      precio: parseFloat(form.precio.replace(/\./g, "").replace(",", ".")) || 0,
-      stock: parseInt(form.stock) || 0,
-      stock_minimo: parseInt(form.stock_minimo) || 5,
-      categoria_id: form.categoria_id || null,
-      negocio_id: negocio.id,
-    };
+const payload = {
+  nombre: form.nombre,
+  descripcion: form.descripcion,
+  precio: parseFloat(form.precio.replace(/\./g, "").replace(",", ".")) || 0,
+  categoria_id: form.categoria_id || null,
+  negocio_id: negocio.id,
+}
 
     let error, productoId;
 
@@ -185,6 +195,15 @@ function Productos() {
         })),
       );
     }
+
+    await supabase
+  .from("stock_sucursal")
+  .upsert({
+    producto_id: productoId,
+    sucursal_id: sucursalActual.id,
+    stock: parseInt(form.stock) || 0,
+    stock_minimo: parseInt(form.stock_minimo) || 5,
+  }, { onConflict: "producto_id,sucursal_id" })
 
     setForm(FORM_VACIO);
     setEditandoId(null);
