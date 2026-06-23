@@ -2,7 +2,7 @@ import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard, Users, Package, ShoppingCart,
-  LogOut, Sparkles, Settings, Truck, Menu, X, BarChart2, ArrowLeftRight, FileText
+  LogOut, Sparkles, Settings, Truck, Menu, X, BarChart2, ArrowLeftRight, FileText, CreditCard
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
@@ -13,6 +13,7 @@ const GRUPOS = [
       { to: "/ventas", label: "Ventas", icon: ShoppingCart },
       { to: "/presupuestos", label: "Presupuestos", icon: FileText },
       { to: "/clientes", label: "Clientes", icon: Users },
+      { to: "/cuentas-corrientes", label: "Cuentas Corrientes", icon: CreditCard },
     ],
   },
   {
@@ -38,7 +39,7 @@ const GRUPOS = [
   },
 ]
 
-function SidebarContent({ negocio, logout, esDueño, onClose }) {
+function SidebarContent({ negocio, logout, esDueño, puedeVerReportes, puedeVerConfig, onClose }) {
 return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6 px-2">
@@ -69,7 +70,9 @@ return (
 
         {GRUPOS.map((grupo) => {
           const linksVisibles = grupo.links.filter((l) => {
-            if (!esDueño && ["/", "/asistente", "/configuracion", "/reportes", "/transferencias"].includes(l.to)) return false
+            if (!esDueño && !puedeVerReportes && ["/reportes", "/transferencias"].includes(l.to)) return false
+            if (!puedeVerConfig && l.to === "/configuracion") return false
+            if (!esDueño && ["/asistente"].includes(l.to)) return false
             return true
           })
           if (linksVisibles.length === 0) return null
@@ -81,7 +84,9 @@ return (
               <div className="flex flex-col gap-0.5">
                 {linksVisibles.map(({ to, label, icon: Icon }) => {
                   const esPro = ["/reportes", "/transferencias"].includes(to)
-                  const tieneAcceso = negocio?.plan === "pro" || negocio?.plan === "premium"
+                  const tieneAcceso = esPro
+                    ? (puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium"))
+                    : true
                   const bloqueado = esPro && !tieneAcceso
 
                   if (bloqueado) {
@@ -142,7 +147,7 @@ return (
 }
 
 function Sidebar() {
-  const { negocio, logout, esDueño } = useAuth()
+  const { negocio, logout, esDueño, puedeVerReportes, puedeVerConfig, rol } = useAuth()
   const [abierto, setAbierto] = useState(false)
 
   return (
@@ -169,22 +174,26 @@ function Sidebar() {
           abierto ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <SidebarContent
+<SidebarContent
           negocio={negocio}
           logout={logout}
           esDueño={esDueño}
+          puedeVerReportes={puedeVerReportes}
+          puedeVerConfig={puedeVerConfig}
           onClose={() => setAbierto(false)}
-        />
+        />          
       </aside>
 
       {/* Sidebar desktop — siempre visible, posición fija normal */}
       <aside className="hidden lg:flex w-64 h-screen bg-sidebar border-r border-sidebar-border p-4 flex-col shrink-0">
-        <SidebarContent
+<SidebarContent
           negocio={negocio}
           logout={logout}
           esDueño={esDueño}
-          onClose={null}
-        />
+          puedeVerReportes={puedeVerReportes}
+          puedeVerConfig={puedeVerConfig}
+          onClose={() => setAbierto(false)}
+        />   
       </aside>
     </>
   )

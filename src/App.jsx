@@ -16,9 +16,10 @@ import { SucursalProvider } from "@/context/SucursalContext"
 import Reportes from "@/pages/Reportes"
 import Transferencias from "@/pages/Transferencias"
 import Presupuestos from "@/pages/Presupuestos"
+import CuentasCorrientes from "@/pages/CuentasCorrientes"
 
 function AppRoutes() {
-  const { user, cargando, esDueño, negocio } = useAuth();
+  const { user, cargando, esDueño, negocio, puedeVerReportes, puedeVerConfig } = useAuth();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   if (cargando) {
@@ -46,45 +47,43 @@ function AppRoutes() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
-          <Routes>
+<Routes>
             <Route
               path="/"
-              element={esDueño ? <Dashboard /> : <Navigate to="/clientes" />}
+              element={esDueño ? <Dashboard /> : <Navigate to="/ventas" />}
             />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/productos" element={<Productos />} />
             <Route path="/proveedores" element={<Proveedores />} />
             <Route path="/ventas" element={<Ventas />} />
             <Route path="/presupuestos" element={<Presupuestos />} />
+            <Route path="/cuentas-corrientes" element={<CuentasCorrientes />} />
             <Route
-  path="/reportes"
-  element={
-    esDueño && (negocio?.plan === "pro" || negocio?.plan === "premium")
-      ? <Reportes />
-      : <Navigate to="/" />
-  }
-/>
-<Route
-  path="/transferencias"
-  element={
-    esDueño && (negocio?.plan === "pro" || negocio?.plan === "premium")
-      ? <Transferencias />
-      : <Navigate to="/" />
-  }
-/>
+              path="/reportes"
+              element={
+                puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium")
+                  ? <Reportes />
+                  : <Navigate to="/" />
+              }
+            />
+            <Route
+              path="/transferencias"
+              element={
+                puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium")
+                  ? <Transferencias />
+                  : <Navigate to="/" />
+              }
+            />
             <Route
               path="/asistente"
-              element={esDueño ? <AsistenteIA /> : <Navigate to="/clientes" />}
+              element={esDueño ? <AsistenteIA /> : <Navigate to="/ventas" />}
             />
             <Route
               path="/configuracion"
-              element={
-                esDueño ? <Configuracion /> : <Navigate to="/clientes" />
-              }
+              element={puedeVerConfig ? <Configuracion /> : <Navigate to="/ventas" />}
             />
-            <Route path="*" element={<Navigate to="/clientes" />} />
-          </Routes>
-        </main>
+            <Route path="*" element={<Navigate to="/ventas" />} />
+          </Routes>        </main>
       </div>
     </div>
   );

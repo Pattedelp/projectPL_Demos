@@ -41,7 +41,7 @@ const { sucursales, recargarSucursales } = useSucursal()
 const [nombreSucursal, setNombreSucursal] = useState("")
 const [direccionSucursal, setDireccionSucursal] = useState("")
 const [agregandoSucursal, setAgregandoSucursal] = useState(false)
-
+const [rolInvitar, setRolInvitar] = useState("vendedor")
   useEffect(() => {
     if (negocio) {
       setDatosForm({
@@ -68,12 +68,9 @@ const [agregandoSucursal, setAgregandoSucursal] = useState(false)
     setInvitando(true);
     setMensajeInvitacion(null);
 
-    const { data, error } = await supabase.functions.invoke(
-      "invitar-empleado",
-      {
-        body: { email: emailInvitar, negocioId: negocio.id },
-      },
-    );
+const { data, error } = await supabase.functions.invoke("invitar-empleado", {
+    body: { email: emailInvitar, negocioId: negocio.id, rol: rolInvitar },
+  })
 
     if (error) {
       setMensajeInvitacion({
@@ -613,17 +610,28 @@ async function borrarSucursal(id) {
             ))}
           </div>
 
-          <form onSubmit={invitarEmpleado} className="flex gap-2">
-            <Input
-              type="email"
-              placeholder="email@empleado.com"
-              value={emailInvitar}
-              onChange={(e) => setEmailInvitar(e.target.value)}
-              required
-            />
-            <Button type="submit" disabled={invitando}>
-              {invitando ? "Enviando..." : "Invitar"}
-            </Button>
+          <form onSubmit={invitarEmpleado} className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="email@empleado.com"
+                value={emailInvitar}
+                onChange={(e) => setEmailInvitar(e.target.value)}
+                required
+              />
+              <select
+                value={rolInvitar}
+                onChange={(e) => setRolInvitar(e.target.value)}
+                className="bg-card border border-border text-foreground text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary shrink-0"
+              >
+                <option value="vendedor">Vendedor</option>
+                <option value="encargado">Encargado</option>
+                <option value="empleado">Empleado</option>
+              </select>
+              <Button type="submit" disabled={invitando}>
+                {invitando ? "Enviando..." : "Invitar"}
+              </Button>
+            </div>
           </form>
 
           {mensajeInvitacion && (
