@@ -2,7 +2,7 @@ import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import {
   LayoutDashboard, Users, Package, ShoppingCart,
-  LogOut, Sparkles, Settings, Truck, Menu, X, BarChart2
+  LogOut, Sparkles, Settings, Truck, Menu, X, BarChart2, ArrowLeftRight
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
@@ -10,6 +10,7 @@ const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/productos", label: "Productos", icon: Package },
+  { to: "/transferencias", label: "Transferencias", icon: ArrowLeftRight },
   { to: "/proveedores", label: "Proveedores", icon: Truck },
   { to: "/ventas", label: "Ventas", icon: ShoppingCart },
   { to: "/reportes", label: "Reportes", icon: BarChart2 },
