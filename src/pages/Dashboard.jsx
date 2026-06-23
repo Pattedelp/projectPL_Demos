@@ -132,9 +132,12 @@ function Dashboard() {
   }
 
   return (
+    
     <div className="p-6">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          Bienvenido, {negocio?.nombre}
+        </h1>
       </div>
       <p className="text-muted-foreground mb-6 flex items-center gap-1.5">
         <Building2 size={14} />
