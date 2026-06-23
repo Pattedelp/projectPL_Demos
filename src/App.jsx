@@ -15,8 +15,10 @@ import Proveedores from "@/pages/Proveedores";
 import { SucursalProvider } from "@/context/SucursalContext"
 import Reportes from "@/pages/Reportes"
 import Transferencias from "@/pages/Transferencias"
+import Presupuestos from "@/pages/Presupuestos"
+
 function AppRoutes() {
-  const { user, cargando, esDueño } = useAuth();
+  const { user, cargando, esDueño, negocio } = useAuth();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   if (cargando) {
@@ -51,15 +53,24 @@ function AppRoutes() {
             />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/productos" element={<Productos />} />
-            <Route
-  path="/transferencias"
-  element={esDueño ? <Transferencias /> : <Navigate to="/clientes" />}
-/>
             <Route path="/proveedores" element={<Proveedores />} />
             <Route path="/ventas" element={<Ventas />} />
+            <Route path="/presupuestos" element={<Presupuestos />} />
             <Route
   path="/reportes"
-  element={esDueño ? <Reportes /> : <Navigate to="/clientes" />}
+  element={
+    esDueño && (negocio?.plan === "pro" || negocio?.plan === "premium")
+      ? <Reportes />
+      : <Navigate to="/" />
+  }
+/>
+<Route
+  path="/transferencias"
+  element={
+    esDueño && (negocio?.plan === "pro" || negocio?.plan === "premium")
+      ? <Transferencias />
+      : <Navigate to="/" />
+  }
 />
             <Route
               path="/asistente"

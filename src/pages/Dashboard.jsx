@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
 import { useSucursal } from "@/context/SucursalContext"
-import { Users, Package, AlertTriangle, DollarSign, Building2 } from "lucide-react"
+import { Users, Package, AlertTriangle, DollarSign, Building2, FileText } from "lucide-react"
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend
@@ -17,7 +17,7 @@ function Dashboard() {
   const [stockSucursal, setStockSucursal] = useState([])
   const [ventasHoy, setVentasHoy] = useState(0)
   const [ventasPorSucursal, setVentasPorSucursal] = useState([])
-
+const [presupuestosPendientes, setPresupuestosPendientes] = useState([])
   const tieneAccesoGrafico = negocio?.plan === "pro" || negocio?.plan === "premium"
 
   useEffect(() => {
@@ -69,9 +69,18 @@ function Dashboard() {
       )
     }
 
+// Presupuestos pendientes
+    const { data: dataPresupuestos } = await supabase
+      .from("presupuestos")
+      .select("id, total, clientes(nombre), created_at")
+      .eq("negocio_id", negocio.id)
+      .eq("estado", "pendiente")
+      .order("created_at", { ascending: false })
+
     setTotalClientes(cantClientes || 0)
     setStockSucursal(dataStock || [])
     setVentasHoy(dataVentasHoy?.reduce((acc, v) => acc + Number(v.total), 0) || 0)
+    setPresupuestosPendientes(dataPresupuestos || [])
     setCargando(false)
   }
 
@@ -121,6 +130,14 @@ function Dashboard() {
       bg: "bg-yellow-500/10",
       descripcion: sucursalActual?.nombre,
     },
+    {
+      titulo: "Presupuestos pendientes",
+      valor: presupuestosPendientes.length,
+      icono: FileText,
+      color: "text-orange-400",
+      bg: "bg-orange-500/10",
+      descripcion: "Sin responder",
+    },
   ]
 
   if (cargando) {
@@ -161,7 +178,34 @@ function Dashboard() {
           </div>
         ))}
       </div>
-
+{presupuestosPendientes.length > 0 && (
+        <div className="bg-card border border-amber-500/30 rounded-lg p-5 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText size={16} className="text-amber-500" />
+            <h2 className="text-foreground font-semibold text-sm">
+              Presupuestos esperando respuesta ({presupuestosPendientes.length})
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {presupuestosPendientes.map((p) => (
+              <div key={p.id} className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2">
+                <div>
+                  <p className="text-foreground text-sm font-medium">
+                    {p.clientes?.nombre || "Sin cliente"}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {new Date(p.created_at).toLocaleDateString("es-AR")}
+                  </p>
+                </div>
+                <span className="text-foreground font-semibold text-sm">
+                  ${Number(p.total).toLocaleString("es-AR")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div className="bg-card border border-border rounded-lg p-5">
           <h2 className="text-foreground font-semibold mb-1">
