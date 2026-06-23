@@ -1,36 +1,36 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/context/AuthContext"
+import { useSucursal } from "@/context/SucursalContext"
 
 export function useAlertas() {
-  const { negocio } = useAuth();
-  const [alertas, setAlertas] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const { negocio } = useAuth()
+  const { sucursalActual } = useSucursal()
+  const [alertas, setAlertas] = useState([])
+  const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    if (negocio) {
-      obtenerAlertas();
+    if (negocio && sucursalActual) {
+      obtenerAlertas()
     }
-  }, [negocio]);
+  }, [negocio, sucursalActual])
 
   async function obtenerAlertas() {
     const { data } = await supabase
-      .from("productos")
-      .select("id, nombre, stock, stock_minimo")
-      .eq("negocio_id", negocio.id);
+      .from("stock_sucursal")
+      .select("stock, stock_minimo, productos(id, nombre)")
+      .eq("sucursal_id", sucursalActual.id)
 
-    const productosStockBajo = (data || []).filter(
-      (p) => p.stock <= p.stock_minimo,
-    );
+    const stockBajo = (data || []).filter((s) => s.stock <= s.stock_minimo)
 
     setAlertas(
-      productosStockBajo.map((p) => ({
-        id: p.id,
-        texto: `${p.nombre} tiene stock bajo (${p.stock} unidades)`,
-      })),
-    );
-    setCargando(false);
+      stockBajo.map((s) => ({
+        id: s.productos?.id,
+        texto: `${s.productos?.nombre} tiene stock bajo (${s.stock} unidades)`,
+      }))
+    )
+    setCargando(false)
   }
 
-  return { alertas, cargando, recargar: obtenerAlertas };
+  return { alertas, cargando, recargar: obtenerAlertas }
 }

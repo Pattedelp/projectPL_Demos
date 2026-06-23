@@ -13,18 +13,24 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     inicializar();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          obtenerNegocio(session.user.id);
-        } else {
-          setUser(null);
-          setNegocio(null);
-          setRol(null);
-        }
-      },
-    );
+  const { data: listener } = supabase.auth.onAuthStateChange(
+  (_event, session) => {
+    if (session?.user) {
+      setUser(session.user)
+      // Pequeño delay solo en el evento SIGNED_IN para dar tiempo
+      // a que las inserciones de registro terminen
+      if (_event === "SIGNED_IN") {
+        setTimeout(() => obtenerNegocio(session.user.id), 1000)
+      } else {
+        obtenerNegocio(session.user.id)
+      }
+    } else {
+      setUser(null)
+      setNegocio(null)
+      setRol(null)
+    }
+  }
+)
 
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -69,28 +75,31 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
   }
 
-  async function registrar(email, password, nombreNegocio) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+async function registrar(email, password, nombreNegocio) {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) return error
 
-    if (error) return error;
+  const { data: negocioCreado, error: errorNegocio } = await supabase
+    .from("negocios")
+    .insert([{ nombre: nombreNegocio, user_id: data.user.id }])
+    .select()
+    .single()
 
-    const { data: negocioCreado, error: errorNegocio } = await supabase
-      .from("negocios")
-      .insert([{ nombre: nombreNegocio, user_id: data.user.id }])
-      .select()
-      .single();
+  if (errorNegocio) return errorNegocio
 
-    if (errorNegocio) return errorNegocio;
+  const { error: errorMiembro } = await supabase.rpc("crear_miembro_dueno", {
+    p_negocio_id: negocioCreado.id,
+    p_user_id: data.user.id,
+  })
 
-    const { error: errorMiembro } = await supabase
-      .from("miembros_negocio")
-      .insert([
-        { negocio_id: negocioCreado.id, user_id: data.user.id, rol: "dueño" },
-      ]);
+  if (errorMiembro) return errorMiembro
 
-    return errorMiembro;
-  }
+const { error: errorSucursal } = await supabase
+  .from("sucursales")
+  .insert([{ nombre: "Casa Central", negocio_id: negocioCreado.id }])
 
+  return errorSucursal
+}
   return (
     <AuthContext.Provider
       value={{

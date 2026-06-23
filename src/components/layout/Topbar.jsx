@@ -40,13 +40,14 @@ function Topbar() {
       <div className="flex items-center gap-4">
         {sucursales.length > 1 && (
           <div className="relative">
-            <button
-              onClick={() => setAbrirSucursales(!abrirSucursales)}
-              className="flex items-center gap-2 text-sm text-foreground bg-secondary border border-border px-3 py-1.5 rounded-lg hover:border-muted-foreground transition-colors"
-            >
-              <span className="max-w-32 truncate">{sucursalActual?.nombre || "Sucursal"}</span>
-              <ChevronDown size={14} className="text-muted-foreground shrink-0" />
-            </button>
+<button
+  onClick={() => setAbrirSucursales(!abrirSucursales)}
+  className="flex items-center gap-2 text-sm text-foreground bg-secondary border border-border px-3 py-1.5 rounded-lg hover:border-muted-foreground transition-colors"
+>
+  <span className="text-muted-foreground shrink-0">Sucursal:</span>
+  <span className="max-w-32 truncate">{sucursalActual?.nombre || "Seleccionar"}</span>
+  <ChevronDown size={14} className="text-muted-foreground shrink-0" />
+</button>
 
             {abrirSucursales && (
               <>
