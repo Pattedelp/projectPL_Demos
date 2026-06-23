@@ -13,7 +13,7 @@ import AsistenteIA from "@/pages/AsistenteIA";
 import Configuracion from "@/pages/Configuracion";
 import Proveedores from "@/pages/Proveedores";
 import { SucursalProvider } from "@/context/SucursalContext"
-
+import Reportes from "@/pages/Reportes"
 function AppRoutes() {
   const { user, cargando, esDueño } = useAuth();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
@@ -42,7 +42,7 @@ function AppRoutes() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
           <Routes>
             <Route
               path="/"
@@ -52,6 +52,10 @@ function AppRoutes() {
             <Route path="/productos" element={<Productos />} />
             <Route path="/proveedores" element={<Proveedores />} />
             <Route path="/ventas" element={<Ventas />} />
+            <Route
+  path="/reportes"
+  element={esDueño ? <Reportes /> : <Navigate to="/clientes" />}
+/>
             <Route
               path="/asistente"
               element={esDueño ? <AsistenteIA /> : <Navigate to="/clientes" />}
