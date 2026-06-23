@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, negocioId } = await req.json()
-
+const { email, negocioId, rol } = await req.json()
+const { pregunta, datosNegocio } = await req.json()
     const authHeader = req.headers.get("Authorization")
     const supabaseUrl = Deno.env.get("SUPABASE_URL")
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")
@@ -94,10 +94,12 @@ Deno.serve(async (req) => {
       })
     }
 
+    const rolFinal = ["vendedor", "encargado", "empleado"].includes(rol) ? rol : "empleado"
+
     const { error: errorMiembro } = await supabaseAdmin
       .from("miembros_negocio")
       .insert([
-        { negocio_id: negocioId, user_id: invitado.user.id, rol: "empleado" },
+        { negocio_id: negocioId, user_id: invitado.user.id, rol: rolFinal },
       ])
 
     if (errorMiembro) {
