@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useSucursal } from "@/context/SucursalContext";
@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { generarLinkWhatsApp, armarMensajeProveedor } from "@/lib/whatsapp";
 import ObservadorScroll from "@/components/ObservadorScroll";
+import { Html5Qrcode } from "html5-qrcode";
+import { Camera, X } from "lucide-react";
 
 const FORM_VACIO = {
   nombre: "",
@@ -54,6 +56,8 @@ function Productos() {
   const [categoriasExpandidas, setCategoriasExpandidas] = useState({});
   const [cantidadVisible, setCantidadVisible] = useState({});
   const [form, setForm] = useState(FORM_VACIO);
+  const [escaneandoCodigo, setEscaneandoCodigo] = useState(false);
+  const html5QrProductoRef = useRef(null);
 
   useEffect(() => {
     if (negocio && sucursalActual) {
@@ -258,6 +262,37 @@ function Productos() {
     window.open(generarLinkWhatsApp(proveedor.telefono, mensaje), "_blank");
   }
 
+  async function iniciarScannerProducto() {
+    setEscaneandoCodigo(true);
+    await new Promise((r) => setTimeout(r, 300));
+    try {
+      const html5Qr = new Html5Qrcode("scanner-producto");
+      html5QrProductoRef.current = html5Qr;
+      await html5Qr.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decodedText) => {
+          setForm((prev) => ({ ...prev, codigo_barras: decodedText }));
+          detenerScannerProducto();
+        },
+        () => {},
+      );
+    } catch {
+      setEscaneandoCodigo(false);
+    }
+  }
+
+  async function detenerScannerProducto() {
+    if (html5QrProductoRef.current) {
+      try {
+        await html5QrProductoRef.current.stop();
+        html5QrProductoRef.current.clear();
+      } catch {}
+      html5QrProductoRef.current = null;
+    }
+    setEscaneandoCodigo(false);
+  }
+
   const proveedoresFiltrados = proveedores.filter((p) =>
     p.nombre.toLowerCase().includes(busquedaProveedor.toLowerCase()),
   );
@@ -292,6 +327,7 @@ function Productos() {
               setForm(FORM_VACIO);
               setCreandoCategoria(false);
               setProveedoresSeleccionados([]);
+              detenerScannerProducto();
             }
           }}
         >
@@ -322,13 +358,39 @@ function Productos() {
                 <Label htmlFor="codigo_barras">
                   Código de barras (opcional)
                 </Label>
-                <Input
-                  id="codigo_barras"
-                  name="codigo_barras"
-                  value={form.codigo_barras}
-                  onChange={handleChange}
-                  placeholder="EAN, UPC, o código interno"
-                />
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="codigo_barras"
+                    name="codigo_barras"
+                    value={form.codigo_barras}
+                    onChange={handleChange}
+                    placeholder="EAN, UPC, o código interno"
+                  />
+                  {!escaneandoCodigo ? (
+                    <button
+                      type="button"
+                      onClick={iniciarScannerProducto}
+                      className="shrink-0 flex items-center gap-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-lg transition-colors"
+                    >
+                      <Camera size={14} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={detenerScannerProducto}
+                      className="shrink-0 flex items-center gap-1 text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 py-2 rounded-lg transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                {escaneandoCodigo && (
+                  <div
+                    id="scanner-producto"
+                    className="w-full mt-2 rounded-lg overflow-hidden"
+                    style={{ minHeight: "200px" }}
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="categoria">Categoría</Label>
