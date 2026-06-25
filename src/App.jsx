@@ -12,14 +12,15 @@ import Registro from "@/pages/Registro";
 import AsistenteIA from "@/pages/AsistenteIA";
 import Configuracion from "@/pages/Configuracion";
 import Proveedores from "@/pages/Proveedores";
-import { SucursalProvider } from "@/context/SucursalContext"
-import Reportes from "@/pages/Reportes"
-import Transferencias from "@/pages/Transferencias"
-import Presupuestos from "@/pages/Presupuestos"
-import CuentasCorrientes from "@/pages/CuentasCorrientes"
+import { SucursalProvider } from "@/context/SucursalContext";
+import Reportes from "@/pages/Reportes";
+import Transferencias from "@/pages/Transferencias";
+import Presupuestos from "@/pages/Presupuestos";
+import CuentasCorrientes from "@/pages/CuentasCorrientes";
 
 function AppRoutes() {
-  const { user, cargando, esDueño, negocio, puedeVerReportes, puedeVerConfig } = useAuth();
+  const { user, cargando, esDueño, negocio, puedeVerReportes, puedeVerConfig } =
+    useAuth();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   if (cargando) {
@@ -46,8 +47,8 @@ function AppRoutes() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
-<Routes>
+        <main className="flex-1 overflow-y-auto pt-14 lg:pt-0 px-0">
+          <Routes>
             <Route
               path="/"
               element={esDueño ? <Dashboard /> : <Navigate to="/ventas" />}
@@ -61,17 +62,23 @@ function AppRoutes() {
             <Route
               path="/reportes"
               element={
-                puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium")
-                  ? <Reportes />
-                  : <Navigate to="/" />
+                puedeVerReportes &&
+                (negocio?.plan === "pro" || negocio?.plan === "premium") ? (
+                  <Reportes />
+                ) : (
+                  <Navigate to="/" />
+                )
               }
             />
             <Route
               path="/transferencias"
               element={
-                puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium")
-                  ? <Transferencias />
-                  : <Navigate to="/" />
+                puedeVerReportes &&
+                (negocio?.plan === "pro" || negocio?.plan === "premium") ? (
+                  <Transferencias />
+                ) : (
+                  <Navigate to="/" />
+                )
               }
             />
             <Route
@@ -80,10 +87,13 @@ function AppRoutes() {
             />
             <Route
               path="/configuracion"
-              element={puedeVerConfig ? <Configuracion /> : <Navigate to="/ventas" />}
+              element={
+                puedeVerConfig ? <Configuracion /> : <Navigate to="/ventas" />
+              }
             />
             <Route path="*" element={<Navigate to="/ventas" />} />
-          </Routes>        </main>
+          </Routes>{" "}
+        </main>
       </div>
     </div>
   );
@@ -98,7 +108,7 @@ function App() {
         </SucursalProvider>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
 export default App;

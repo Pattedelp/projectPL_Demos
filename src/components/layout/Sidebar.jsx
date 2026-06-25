@@ -1,11 +1,23 @@
-import { useState } from "react"
-import { NavLink } from "react-router-dom"
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Package, ShoppingCart,
-  LogOut, Sparkles, Settings, Truck, Menu, X, BarChart2, ArrowLeftRight, FileText, CreditCard
-} from "lucide-react"
-import { useAuth } from "@/context/AuthContext"
-
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  LogOut,
+  Sparkles,
+  Settings,
+  Truck,
+  Menu,
+  X,
+  BarChart2,
+  ArrowLeftRight,
+  FileText,
+  CreditCard,
+} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useSucursal } from "@/context/SucursalContext";
 const GRUPOS = [
   {
     titulo: "Operaciones",
@@ -13,7 +25,11 @@ const GRUPOS = [
       { to: "/ventas", label: "Ventas", icon: ShoppingCart },
       { to: "/presupuestos", label: "Presupuestos", icon: FileText },
       { to: "/clientes", label: "Clientes", icon: Users },
-      { to: "/cuentas-corrientes", label: "Cuentas Corrientes", icon: CreditCard },
+      {
+        to: "/cuentas-corrientes",
+        label: "Cuentas Corrientes",
+        icon: CreditCard,
+      },
     ],
   },
   {
@@ -26,9 +42,7 @@ const GRUPOS = [
   },
   {
     titulo: "Análisis",
-    links: [
-      { to: "/reportes", label: "Reportes", icon: BarChart2 },
-    ],
+    links: [{ to: "/reportes", label: "Reportes", icon: BarChart2 }],
   },
   {
     titulo: "Sistema",
@@ -37,15 +51,26 @@ const GRUPOS = [
       { to: "/configuracion", label: "Configuración", icon: Settings },
     ],
   },
-]
+];
 
-function SidebarContent({ negocio, logout, esDueño, puedeVerReportes, puedeVerConfig, onClose }) {
-return (
+function SidebarContent({
+  negocio,
+  logout,
+  esDueño,
+  puedeVerReportes,
+  puedeVerConfig,
+  onClose,
+}) {
+  const { sucursales, sucursalActual, setSucursalActual } = useSucursal();
+  return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6 px-2">
         <img src="/workpilot_logo.png" alt="Workpilot" className="h-7" />
         {onClose && (
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground lg:hidden">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground lg:hidden"
+          >
             <X size={20} />
           </button>
         )}
@@ -70,12 +95,17 @@ return (
 
         {GRUPOS.map((grupo) => {
           const linksVisibles = grupo.links.filter((l) => {
-            if (!esDueño && !puedeVerReportes && ["/reportes", "/transferencias"].includes(l.to)) return false
-            if (!puedeVerConfig && l.to === "/configuracion") return false
-            if (!esDueño && ["/asistente"].includes(l.to)) return false
-            return true
-          })
-          if (linksVisibles.length === 0) return null
+            if (
+              !esDueño &&
+              !puedeVerReportes &&
+              ["/reportes", "/transferencias"].includes(l.to)
+            )
+              return false;
+            if (!puedeVerConfig && l.to === "/configuracion") return false;
+            if (!esDueño && ["/asistente"].includes(l.to)) return false;
+            return true;
+          });
+          if (linksVisibles.length === 0) return null;
           return (
             <div key={grupo.titulo}>
               <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-3 mb-1">
@@ -83,23 +113,28 @@ return (
               </p>
               <div className="flex flex-col gap-0.5">
                 {linksVisibles.map(({ to, label, icon: Icon }) => {
-                  const esPro = ["/reportes", "/transferencias"].includes(to)
+                  const esPro = ["/reportes", "/transferencias"].includes(to);
                   const tieneAcceso = esPro
-                    ? (puedeVerReportes && (negocio?.plan === "pro" || negocio?.plan === "premium"))
-                    : true
-                  const bloqueado = esPro && !tieneAcceso
+                    ? puedeVerReportes &&
+                      (negocio?.plan === "pro" || negocio?.plan === "premium")
+                    : true;
+                  const bloqueado = esPro && !tieneAcceso;
 
                   if (bloqueado) {
                     return (
-                      <div key={to}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg text-muted-foreground/40 cursor-not-allowed">
+                      <div
+                        key={to}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg text-muted-foreground/40 cursor-not-allowed"
+                      >
                         <div className="flex items-center gap-3">
                           <Icon size={16} />
                           <span className="text-sm">{label}</span>
                         </div>
-                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">Pro</span>
+                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
+                          Pro
+                        </span>
                       </div>
-                    )
+                    );
                   }
 
                   return (
@@ -119,43 +154,73 @@ return (
                       <Icon size={16} />
                       {label}
                     </NavLink>
-                  )
+                  );
                 })}
               </div>
             </div>
-          )
+          );
         })}
       </nav>
 
-      <div className="mt-auto px-2 pt-4 border-t border-border">
-        <p className="text-sm text-foreground font-medium truncate">
-          {negocio?.nombre || "Mi negocio"}
-        </p>
-        <p className="text-xs text-muted-foreground capitalize mb-3">
-          Plan {negocio?.plan || "básico"}
-        </p>
-        <button
-          onClick={logout}
-          className="flex items-center gap-2 text-xs text-muted-foreground hover:text-red-400 transition-colors"
-        >
-          <LogOut size={14} />
-          Cerrar sesión
-        </button>
+      <div className="mt-auto px-2 pt-4 border-t border-border space-y-3">
+        {/* Selector de sucursal — solo visible en mobile */}
+        {sucursales.length > 1 && (
+          <div className="lg:hidden">
+            <p className="text-muted-foreground text-xs mb-1.5">
+              Sucursal activa
+            </p>
+            <div className="flex flex-col gap-1">
+              {sucursales.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setSucursalActual(s);
+                    onClose?.();
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                    sucursalActual?.id === s.id
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-card hover:text-foreground"
+                  }`}
+                >
+                  {s.nombre}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <p className="text-sm text-foreground font-medium truncate">
+            {negocio?.nombre || "Mi negocio"}
+          </p>
+          <p className="text-xs text-muted-foreground capitalize mb-3">
+            Plan {negocio?.plan || "básico"}
+          </p>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-red-400 transition-colors"
+          >
+            <LogOut size={14} />
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
 function Sidebar() {
-  const { negocio, logout, esDueño, puedeVerReportes, puedeVerConfig, rol } = useAuth()
-  const [abierto, setAbierto] = useState(false)
+  const { negocio, logout, esDueño, puedeVerReportes, puedeVerConfig, rol } =
+    useAuth();
+  const [abierto, setAbierto] = useState(false);
 
   return (
     <>
       {/* Botón hamburguesa — solo visible en mobile */}
       <button
         onClick={() => setAbierto(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 flex items-center justify-center bg-card border border-border rounded-lg text-foreground shadow-md"
+        className="lg:hidden fixed top-3 left-4 z-50 w-9 h-9 flex items-center justify-center bg-card border border-border rounded-lg text-foreground shadow-md"
       >
         <Menu size={18} />
       </button>
@@ -174,29 +239,29 @@ function Sidebar() {
           abierto ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-<SidebarContent
+        <SidebarContent
           negocio={negocio}
           logout={logout}
           esDueño={esDueño}
           puedeVerReportes={puedeVerReportes}
           puedeVerConfig={puedeVerConfig}
           onClose={() => setAbierto(false)}
-        />          
+        />
       </aside>
 
       {/* Sidebar desktop — siempre visible, posición fija normal */}
       <aside className="hidden lg:flex w-64 h-screen bg-sidebar border-r border-sidebar-border p-4 flex-col shrink-0">
-<SidebarContent
+        <SidebarContent
           negocio={negocio}
           logout={logout}
           esDueño={esDueño}
           puedeVerReportes={puedeVerReportes}
           puedeVerConfig={puedeVerConfig}
           onClose={() => setAbierto(false)}
-        />   
+        />
       </aside>
     </>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;
