@@ -1,30 +1,35 @@
-import { useState } from "react"
-import { useAuth } from "@/context/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { aplicarTema, cargarTemaLocal } from "@/lib/temas";
+import { useEffect } from "react";
 
 function Login({ onIrARegistro }) {
-  const { login } = useAuth()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [cargando, setCargando] = useState(false)
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError("")
-    setCargando(true)
-    const errorLogin = await login(email, password)
+    e.preventDefault();
+    setError("");
+    setCargando(true);
+    const errorLogin = await login(email, password);
     if (errorLogin) {
-      setError("Email o contraseña incorrectos")
-      setCargando(false)
+      setError("Email o contraseña incorrectos");
+      setCargando(false);
     }
   }
 
+  useEffect(() => {
+    aplicarTema(cargarTemaLocal());
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex">
-
       {/* Panel izquierdo — branding */}
       <div className="hidden lg:flex w-1/2 bg-sidebar flex-col items-center justify-center p-12 border-r border-border relative overflow-hidden">
         {/* Círculos decorativos de fondo */}
@@ -62,7 +67,6 @@ function Login({ onIrARegistro }) {
       {/* Panel derecho — formulario */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-sm">
-
           {/* Logo solo en mobile (en desktop se ve en el panel izquierdo) */}
           <div className="flex flex-col items-center mb-8 lg:hidden">
             <img
@@ -126,9 +130,8 @@ function Login({ onIrARegistro }) {
           </form>
         </div>
       </div>
-
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;

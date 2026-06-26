@@ -66,3 +66,11 @@ export function aplicarTema(claveTema) {
   root.style.setProperty("--sidebar-primary", tema.primary);
   root.style.setProperty("--sidebar-ring", tema.ring);
 }
+
+export function guardarTemaLocal(claveTema) {
+  localStorage.setItem("workpilot_tema", claveTema);
+}
+
+export function cargarTemaLocal() {
+  return localStorage.getItem("workpilot_tema") || "azul";
+}

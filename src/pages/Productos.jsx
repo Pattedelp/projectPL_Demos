@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +23,8 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronRight,
+  Download,
+  Upload,
 } from "lucide-react";
 import { generarLinkWhatsApp, armarMensajeProveedor } from "@/lib/whatsapp";
 import ObservadorScroll from "@/components/ObservadorScroll";
@@ -58,6 +61,8 @@ function Productos() {
   const [form, setForm] = useState(FORM_VACIO);
   const [escaneandoCodigo, setEscaneandoCodigo] = useState(false);
   const html5QrProductoRef = useRef(null);
+  const [importando, setImportando] = useState(false);
+  const importRef = useRef(null);
 
   useEffect(() => {
     if (negocio && sucursalActual) {
@@ -293,6 +298,129 @@ function Productos() {
     setEscaneandoCodigo(false);
   }
 
+  function descargarPlantillaProductos() {
+    const ws = XLSX.utils.aoa_to_sheet([
+      [
+        "nombre",
+        "descripcion",
+        "precio",
+        "stock",
+        "stock_minimo",
+        "categoria",
+        "codigo_barras",
+      ],
+      [
+        "Látex interior blanco 4L",
+        "Pintura látex para interior",
+        "8500",
+        "10",
+        "3",
+        "Látex interior",
+        "7891234567890",
+      ],
+      ["Esmalte sintético negro 1L", "", "4200", "5", "2", "Esmaltes", ""],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Productos");
+    XLSX.writeFile(wb, "plantilla_productos_workpilot.xlsx");
+  }
+
+  async function importarProductosExcel(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImportando(true);
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: "binary" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const filas = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+        let exitosos = 0;
+        let errores = 0;
+
+        for (const fila of filas) {
+          if (!fila.nombre || !fila.precio) {
+            errores++;
+            continue;
+          }
+
+          // Buscar o crear categoría
+          let categoriaId = null;
+          if (fila.categoria) {
+            const { data: catExistente } = await supabase
+              .from("categorias")
+              .select("id")
+              .eq("negocio_id", negocio.id)
+              .ilike("nombre", fila.categoria.trim())
+              .single();
+
+            if (catExistente) {
+              categoriaId = catExistente.id;
+            } else {
+              const { data: catNueva } = await supabase
+                .from("categorias")
+                .insert([
+                  { nombre: fila.categoria.trim(), negocio_id: negocio.id },
+                ])
+                .select()
+                .single();
+              categoriaId = catNueva?.id;
+            }
+          }
+
+          const { data: prod, error } = await supabase
+            .from("productos")
+            .insert([
+              {
+                nombre: fila.nombre.trim(),
+                descripcion: fila.descripcion || null,
+                precio: parseFloat(String(fila.precio).replace(",", ".")) || 0,
+                categoria_id: categoriaId,
+                negocio_id: negocio.id,
+                codigo_barras: fila.codigo_barras
+                  ? String(fila.codigo_barras).trim()
+                  : null,
+              },
+            ])
+            .select()
+            .single();
+
+          if (error || !prod) {
+            errores++;
+            continue;
+          }
+
+          // Crear stock en sucursal activa
+          await supabase.from("stock_sucursal").upsert(
+            {
+              producto_id: prod.id,
+              sucursal_id: sucursalActual.id,
+              stock: parseInt(fila.stock) || 0,
+              stock_minimo: parseInt(fila.stock_minimo) || 5,
+            },
+            { onConflict: "producto_id,sucursal_id" },
+          );
+
+          exitosos++;
+        }
+
+        alert(
+          `Importación completa: ${exitosos} productos importados${errores > 0 ? `, ${errores} errores` : ""}.`,
+        );
+        obtenerTodo();
+      } catch (err) {
+        alert(
+          "Error al leer el archivo. Verificá que sea un Excel válido con el formato de la plantilla.",
+        );
+      }
+      setImportando(false);
+      if (importRef.current) importRef.current.value = "";
+    };
+    reader.readAsBinaryString(file);
+  }
+
   const proveedoresFiltrados = proveedores.filter((p) =>
     p.nombre.toLowerCase().includes(busquedaProveedor.toLowerCase()),
   );
@@ -317,6 +445,29 @@ function Productos() {
             Productos / Stock
           </h1>
           <p className="text-muted-foreground mt-1">Inventario del negocio.</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={descargarPlantillaProductos}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border px-3 py-2 rounded-lg transition-colors"
+          >
+            <Download size={14} />
+            Plantilla Excel
+          </button>
+          <label
+            className={`flex items-center gap-1.5 text-xs border border-border px-3 py-2 rounded-lg transition-colors cursor-pointer ${importando ? "text-muted-foreground/50" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Upload size={14} />
+            {importando ? "Importando..." : "Importar Excel"}
+            <input
+              ref={importRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={importarProductosExcel}
+              disabled={importando}
+            />
+          </label>
         </div>
         <Dialog
           open={open}
